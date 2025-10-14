@@ -5,6 +5,8 @@ Monitors Facebook Group posts for location-specific impacts during incidents
 
 import kivy
 kivy.require('2.0.0')
+import os
+os.environ['KIVY_GL_BACKEND'] = 'angle_sdl2'
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
