@@ -1,0 +1,17 @@
+[
+  {
+    "timestamp": "2025-10-12 14:52:08",
+    "by_district": {
+      "Hilo": "Power outages reported in downtown area. Traffic delays on Highway 19.",
+      "Kona": "Minor flooding near Ali'i Drive. Beach closures in effect.",
+      "Puna": "Road blockages due to fallen trees on Highway 130."
+    },
+    "high_priority": [
+      "Medical emergency reported in Hilo - ambulance dispatched",
+      "Major power outage affecting 500+ homes in Kona",
+      "Highway 130 blocked - alternate routes advised"
+    ],
+    "comment_count": 247,
+    "new_comments": 83
+  }
+]
