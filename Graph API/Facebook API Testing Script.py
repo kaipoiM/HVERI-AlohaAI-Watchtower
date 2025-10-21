@@ -13,6 +13,7 @@ class FacebookGraphAPI:
     def __init__(self):
         self.access_token = os.getenv('FACEBOOK_ACCESS_TOKEN')
         self.group_id = os.getenv('HAWAII_TRACKER_GROUP_ID')
+        self.user_id = os.getenv('HAWAII_TRACKER_USER_ID')
         self.base_url = 'https://graph.facebook.com/v21.0'
 
         # Validate credentials
@@ -27,7 +28,7 @@ class FacebookGraphAPI:
         print("TEST 1: Basic API Access")
         print("=" * 80)
 
-        url = f'{self.base_url}/100006769562224'
+        url = f'{self.base_url}/{self.user_id}'
         params = {
             'fields': 'id,name,email',
             'access_token': self.access_token
@@ -208,7 +209,7 @@ class FacebookGraphAPI:
         print("=" * 80)
 
         # Make a simple request and check headers
-        url = f'{self.base_url}/100006769562224'
+        url = f'{self.base_url}/{self.user_id}'
         params = {'access_token': self.access_token}
 
         try:
