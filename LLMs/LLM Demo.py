@@ -13,6 +13,7 @@ from datetime import datetime
 from dotenv import load_dotenv, dotenv_values
 import os, sys
 
+
 # variables for API key and language model
 load_dotenv()
 four_key = os.getenv("OPENAI_KEY")
