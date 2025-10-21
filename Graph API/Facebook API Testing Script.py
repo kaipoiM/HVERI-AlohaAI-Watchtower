@@ -27,7 +27,7 @@ class FacebookGraphAPI:
         print("TEST 1: Basic API Access")
         print("=" * 80)
 
-        url = f'{self.base_url}/me'
+        url = f'{self.base_url}/100006769562224'
         params = {
             'fields': 'id,name,email',
             'access_token': self.access_token
@@ -84,12 +84,20 @@ class FacebookGraphAPI:
         print(f"TEST 3: Fetching {limit} Recent Posts")
         print("=" * 80)
 
-        url = f'{self.base_url}/{self.group_id}/feed'
+        # Clean the group ID (remove any accidental characters)
+        clean_group_id = str(self.group_id).split('#')[0].split('?')[0].strip()
+
+        print(f"Group ID from .env: '{self.group_id}'")
+        print(f"Cleaned Group ID: '{clean_group_id}'")
+
+        url = f'{self.base_url}/{clean_group_id}/feed'
         params = {
             'fields': 'id,message,created_time,from,comments.limit(5){id,from,message,created_time}',
             'limit': limit,
             'access_token': self.access_token
         }
+
+        print(f"Requesting URL: {url}")
 
         try:
             response = requests.get(url, params=params)
@@ -200,7 +208,7 @@ class FacebookGraphAPI:
         print("=" * 80)
 
         # Make a simple request and check headers
-        url = f'{self.base_url}/me'
+        url = f'{self.base_url}/100006769562224'
         params = {'access_token': self.access_token}
 
         try:
