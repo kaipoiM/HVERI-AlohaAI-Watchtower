@@ -1,263 +1,313 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains.summarize import load_summarize_chain
-from langchain.prompts import PromptTemplate
-from langchain.agents import Tool, Agent, AgentType
-from langchain.tools import BaseTool
-from langchain_openai import ChatOpenAI
-from langchain.schema.output_parser import StrOutputParser
-from pydantic import BaseModel, Field
-from typing import Optional, Type
-
+import anthropic
 from fpdf import FPDF
 from datetime import datetime
-from dotenv import load_dotenv, dotenv_values
-import os, sys
+from dotenv import load_dotenv
+import os
+import json
 
-
-# variables for API key and language model
+# Load environment variables
 load_dotenv()
-four_key = os.getenv("OPENAI_KEY")
-cookiesFile = os.getenv("COOKIES")
-llm = ChatOpenAI(model='gpt-4', openai_api_key=four_key, temperature='0')
+claude_api_key = os.getenv("ANTHROPIC_API_KEY")
 
-# variable to store timestamp of program run
+# Initialize Claude client
+client = anthropic.Anthropic(api_key=claude_api_key)
+
+# Variable to store timestamp of program run
 now = datetime.now()
 timestamp = now.strftime("%m-%d-%Y %H:%M\n")
-file_timestamp = now.strftime("%m-%d-%Y_%H:%M\n")
+file_timestamp = now.strftime("%m-%d-%Y_%H:%M")
 
 
-# test for agent tools (no diacreticals used)
-# def mapDistrict(town_name: str) -> str:
-#     """Useful for determining what district the commment is coming from,
-#         if a town is named in the comment, correlate it to the district"""
-#     district_to_town = {
-#     "North Kohala": ["Halaula", "Hawi", "Kapaau", "Puakea Ranch", "Mahukona", "Kaholena", "Kohala Ranch", "Upolu", "Halawa", "Makapala", "Niulii", "Pulolu"],
-#     "South Kohala": ["Kawaihae", "Hapuna", "Puako", "Waikoloa", "Waimea", "Waikii", "Puukapu"],
-#     "Hamakua": ["Waipio", "Kukuihaele", "Ahualoa", "Honokaa", "Paauhau", "Kalopa", "Paauilo", "Kukuaiau", "Niupea"],
-#     "North Hilo": ["Ookala", "Waipunalei", "Laupahoehoe", "Papaaloa", "Kapehu", "Pohakupuka", "Ninole", "Umauma"],
-#     "South Hilo": ["Hakalau", "Honomu", "Pepeekeo", "Onomea", "Papaikou", "Paukaa", "Puueo", "Wainaku", "Keaukaha", "Panaewa", "Kaiwiki", "Piihonua", "Kaumana", "Sunrise Ridge", "Waiakea Uka"],
-#     "Puna": ["Kurtistown", "Hawaiian Paradise Park", "HPP", "Hawaiian Acres", "Orchidland", "Hawaiian Beaches", "Ainaloa", "Nanawale Estates", "Kapoho", "Pohoiki", "Leilani Estates", "Opihikao", "Kehena", "Kaimu", "Mountain View", "Glenwood", "Fern Acres", "Volcano", "Kalapana"],
-#     "Ka'u": ["Wood Valley", "Pahala", "Punaluu", "Naalehu", "Waiohinu", "Ka Lae", "Kamaoa", "Ocean View", "Manuka"],
-#     "South Kona": ["Honomalino", "Milolii", "Papa Bay", "Kona", "Hookena", "Kealia", "Honaunau", "Keei", "Napoopoo", "Captain Cook", "Kealakekua",],
-#     "North Kona": ["Honalo", "Keauhou", "Alii Heights", "Hualalai", "Kailua-Kona", "Kealakehe", "Kaloko", "Makalawena", "Holulaloa", "Kaupulehu", "Kukio", "Puulani Ranch", "Makalei Estates"]
-# }
+def split_text(text, max_chars=15000):
+    """Split text into chunks that fit within Claude's context window"""
+    chunks = []
+    current_chunk = ""
 
-#     for district, towns in district_to_town.items():
-#         if town_name in towns:
-#             return district
+    lines = text.split('\n')
+    for line in lines:
+        if len(current_chunk) + len(line) < max_chars:
+            current_chunk += line + '\n'
+        else:
+            if current_chunk:
+                chunks.append(current_chunk)
+            current_chunk = line + '\n'
 
-# tools = [
-#     Tool(
-#         name = "districtMap",
-#         func=mapDistrict,
-#         description="context for when a comment states what subdivision they are from and what district it is located in"
+    if current_chunk:
+        chunks.append(current_chunk)
 
-#     )
-# ]
-# class DistrictToTownInput(BaseModel):
-#     """Input for District to Town check"""
-#     town_in: str = Field(..., description="Town input for model")
-# class DistrictToTownTool(BaseTool):
-#     name = "map_destrict"
-#     description = "Useful for determining what district the commment is coming from, if a town is named in the comment, correlate it to the district"
+    return chunks
 
-#     def _run(self, town_in: str):
-#         print("i'm running")
-#         district_response = mapDistrict(town_in)
-#         return district_response
 
-#     def _arun(self, town_in: str):
-#         raise NotImplementedError("This tool does not support async")
-
-#     args_schema: Optional[Type[BaseModel]] = DistrictToTownInput
-
-# open_ai_agent = Agent(tools, llm, agent=AgentType.OPENAI_FUNCTIONS, verbose=True)
-
-# def run_agent_test():
-#     open_ai_agent.run("What is the district of Kurtistown?")
+def call_claude(prompt, max_tokens=4096):
+    """Make a call to Claude API"""
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return message.content[0].text
+    except Exception as e:
+        print(f"Error calling Claude: {e}")
+        return None
 
 
 def from_full():
-    # specify file here
-    # synthetic data: Sample_Data_synthetic_-_Waikoloa_fire.txt
-    # test post data: full_comments.txt
-    comments_text = "./full_comments.txt"
-    with open(comments_text, 'r', encoding="utf8") as file:
-        comments = file.read()
+    """Process full comments file and generate disaster report"""
+    # Specify file here
+    comments_json = "../Graph Api/comments.json"
 
-    # split file into docs
-    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=2000, chunk_overlap=0)
-    docs = text_splitter.create_documents([comments])
-    num_docs = len(docs)
-    print("Full Comments have been split to " + str(num_docs) + " docs")
+    try:
+        with open(comments_json, 'r', encoding="utf8") as file:
+            comments_data = json.load(file)
 
-    # output number of tokens in each doc
-    for doc in docs:
-        num_tokens_curr_doc = llm.get_num_tokens(doc.page_content)
-        print(num_tokens_curr_doc)
+        # Format comments with timestamps
+        comments = ""
+        for entry in comments_data:
+            timestamp = entry.get("timestamp", "No timestamp")
+            comment = entry.get("comment", "")
+            comments += f"[{timestamp}] {comment}\n\n"
+    except FileNotFoundError:
+        print(f"Error: {comments_json} not found")
+        return
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON file: {e}")
+        return
 
-    map_prompt = """
-            Topic: Natural Disaster
-            For Audience: Hawaii County Civil Defense
-            For Audience: Emergency Operations Center
-            The following is a set of comments taken from a Facebook Group focusing on natural disasters on the island
-            of Hawaii:
+    # Split file into chunks
+    chunks = split_text(comments, max_chars=15000)
+    num_chunks = len(chunks)
+    print(f"Full Comments have been split to {num_chunks} chunks")
 
-    {text}
+    # Process each chunk with map prompt
+    map_prompt_template = """
+Topic: Natural Disaster
+For Audience: Hawaii County Civil Defense
+For Audience: Emergency Operations Center
 
-            Organize each comment to the different districts of the Big Island (South Kohala, North Kohala, Hamakua, North Hilo, South Hilo, Puna, Ka'u, South Kona, and North Kona). 
-            Use this context for each town corresponding to the district:
-            - North Kohala: "Halaula", "Hawi", "Kapaau", "Puakea Ranch", "Mahukona", "Kaholena", "Kohala Ranch", "Upolu", "Halawa", "Makapala", "Niulii", "Pulolu"
-            - South Kohala: "Kawaihae", "Hapuna", "Puako", "Waikoloa", "Waimea", "Waikii", "Puukapu"
-            - Hamakua: "Waipio", "Kukuihaele", "Ahualoa", "Honokaa", "Paauhau", "Kalopa", "Paauilo", "Kukuaiau", "Niupea"
-            - North Hilo: "Ookala", "Waipunalei", "Laupahoehoe", "Papaaloa", "Kapehu", "Pohakupuka", "Ninole", "Umauma"
-            - South Hilo: "Hakalau", "Honomu", "Pepeekeo", "Onomea", "Papaikou", "Paukaa", "Puueo", "Wainaku", "Keaukaha", "Panaewa", "Kaiwiki", "Piihonua", "Kaumana", "Sunrise Ridge", "Waiakea Uka"
-            - Puna: "Kurtistown", "Hawaiian Paradise Park", "HPP", "Hawaiian Acres", "Orchidland", "Hawaiian Beaches", "Ainaloa", "Nanawale Estates", "Kapoho", "Pohoiki", "Leilani Estates", "Opihikao", "Kehena", "Kaimu", "Mountain View", "Glenwood", "Fern Acres", "Volcano", "Kalapana"
-            - Ka'u: "Wood Valley", "Pahala", "Punaluu", "Naalehu", "Waiohinu", "Ka Lae", "Kamaoa", "Ocean View", "Manuka"
-            - South Kona: "Honomalino", "Milolii", "Papa Bay", "Kona", "Hookena", "Kealia", "Honaunau", "Keei", "Napoopoo", "Captain Cook", "Kealakekua"
-            - North Kona: "Honalo", "Keauhou", "Alii Heights", "Hualalai", "Kailua-Kona", "Kealakehe", "Kaloko", "Makalawena", "Holulaloa", "Kaupulehu", "Kukio", "Puulani Ranch", "Makalei Estates"
+The following is a set of comments taken from a Facebook Group focusing on natural disasters on the island of Hawaii:
 
-            In another list, organize the most urgent comments (comments that show impact on human safety and access to essential services)
-    """
-    map_prompt_template = PromptTemplate(template=map_prompt, input_variables=["text"])
+{text}
 
-    combine_prompt = """
-                Topic: Natural Disaster
-                For Audience: Hawaii County Civil Defense
-                For Audience: Emergency Operations Center
-                The following is a set of comments taken from a Facebook Group focusing on natural disasters on the island
-                of Hawaii.
+Organize each comment to the different districts of the Big Island (South Kohala, North Kohala, Hamakua, North Hilo, South Hilo, Puna, Ka'u, South Kona, and North Kona). 
 
-                {text}
+Use this context for each town corresponding to the district:
+- North Kohala: Halaula, Hawi, Kapaau, Puakea Ranch, Mahukona, Kaholena, Kohala Ranch, Upolu, Halawa, Makapala, Niulii, Pulolu
+- South Kohala: Kawaihae, Hapuna, Puako, Waikoloa, Waimea, Waikii, Puukapu
+- Hamakua: Waipio, Kukuihaele, Ahualoa, Honokaa, Paauhau, Kalopa, Paauilo, Kukuaiau, Niupea
+- North Hilo: Ookala, Waipunalei, Laupahoehoe, Papaaloa, Kapehu, Pohakupuka, Ninole, Umauma
+- South Hilo: Hakalau, Honomu, Pepeekeo, Onomea, Papaikou, Paukaa, Puueo, Wainaku, Keaukaha, Panaewa, Kaiwiki, Piihonua, Kaumana, Sunrise Ridge, Waiakea Uka
+- Puna: Kurtistown, Hawaiian Paradise Park, HPP, Hawaiian Acres, Orchidland, Hawaiian Beaches, Ainaloa, Nanawale Estates, Kapoho, Pohoiki, Leilani Estates, Opihikao, Kehena, Kaimu, Mountain View, Glenwood, Fern Acres, Volcano, Kalapana
+- Ka'u: Wood Valley, Pahala, Punaluu, Naalehu, Waiohinu, Ka Lae, Kamaoa, Ocean View, Manuka
+- South Kona: Honomalino, Milolii, Papa Bay, Kona, Hookena, Kealia, Honaunau, Keei, Napoopoo, Captain Cook, Kealakekua
+- North Kona: Honalo, Keauhou, Alii Heights, Hualalai, Kailua-Kona, Kealakehe, Kaloko, Makalawena, Holulaloa, Kaupulehu, Kukio, Puulani Ranch, Makalei Estates
 
-                With these organized comments create a professional natural disaster report with this specific format:
+In another list, organize the most urgent comments (comments that show impact on human safety and access to essential services).
+"""
 
-                Format:
-                1) Most Affected Areas 
-                        - List the areas that were experiencing the most negative effects
-                2) Reports by District
-                        - Write a 3 sentence summary about each district
-                3) High-Priority Events
-                        - List the comment (comments that showed the most negative impact on human safety and access to essential services) and a short explanation why it was highlighted with urgency 
-                """
-    combine_prompt_template = PromptTemplate(template=combine_prompt, input_variables=["text"])
+    print("Processing chunks with Claude...")
+    organized_chunks = []
+    for i, chunk in enumerate(chunks):
+        print(f"Processing chunk {i + 1}/{num_chunks}...")
+        map_prompt = map_prompt_template.format(text=chunk)
+        result = call_claude(map_prompt)
+        if result:
+            organized_chunks.append(result)
 
-    chain = load_summarize_chain(llm=llm, chain_type='map_reduce',
-                                 map_prompt=map_prompt_template,
-                                 combine_prompt=combine_prompt_template,
-                                 verbose=True
-                                 )
+    # Combine all organized chunks
+    combined_text = "\n\n".join(organized_chunks)
 
-    # llm.smith.evaluation.progress.ProgressBarCallback()
-    output = chain.run(docs)
+    # Create final report with combine prompt
+    combine_prompt = f"""
+Topic: Natural Disaster
+For Audience: Hawaii County Civil Defense
+For Audience: Emergency Operations Center
 
-    # Writing GPT's output to text file, then opening it for reading
-    with open('finalreport.txt', 'w') as f:
-        f.write(timestamp)
-        f.write(output.strip())
-    f.close()
+The following is a set of organized comments from a Facebook Group focusing on natural disasters on the island of Hawaii:
+
+{combined_text}
+
+With these organized comments create a professional natural disaster report with this specific format:
+
+Format:
+1) Most Affected Areas 
+   - List the areas that were experiencing the most negative effects
+2) Reports by District
+   - Write a 3 sentence summary about each district
+3) High-Priority Events
+   - List the comments (that showed the most negative impact on human safety and access to essential services) and a short explanation why it was highlighted with urgency
+"""
+
+    print("Generating final report...")
+    output = call_claude(combine_prompt, max_tokens=8000)
+
+    if output:
+        # Write output to text file
+        with open('finalreport.txt', 'w', encoding='utf-8') as f:
+            f.write(timestamp)
+            f.write(output.strip())
+        print("Report written to finalreport.txt")
+    else:
+        print("Failed to generate report")
 
 
 def combine_reports():
-    report1 = input("Enter name of first report\n")
-    report2 = input("Enter name of second report\n")
+    """Combine two existing reports into one"""
+    report1 = input("Enter name of first report: ")
+    report2 = input("Enter name of second report: ")
 
     filenames = [report1, report2]
 
-    with open("mergedfile.txt", 'w', encoding="utf8") as file:
-        for fname in filenames:
-            index = filenames.index(fname)
-            index = index + 1
-            file.write("Report " + str(index) + ":\n\n")
-            with open(fname) as infile:
-                for line in infile:
-                    file.write(line)
-            file.write("\n\n")
+    try:
+        with open("mergedfile.txt", 'w', encoding="utf8") as file:
+            for fname in filenames:
+                index = filenames.index(fname) + 1
+                file.write(f"Report {index}:\n\n")
+                with open(fname, encoding="utf8") as infile:
+                    file.write(infile.read())
+                file.write("\n\n")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return
 
-    # specify file here
-    comments_text = "mergedfile.txt"
-    with open(comments_text, 'r', encoding="utf8") as file:
+    # Read merged file
+    with open("mergedfile.txt", 'r', encoding="utf8") as file:
         comments = file.read()
 
-    # split file into docs [num_docs is len(docs)]
-    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=3000, chunk_overlap=0)
-    docs = text_splitter.create_documents([comments])
-    num_docs = len(docs)
-    print("Reports have been split to " + str(num_docs) + " docs")
+    # Split into chunks if needed
+    chunks = split_text(comments, max_chars=20000)
+    num_chunks = len(chunks)
+    print(f"Reports have been split to {num_chunks} chunks")
 
-    # output number of tokens in each doc
-    for doc in docs:
-        num_tokens_curr_doc = llm.get_num_tokens(doc.page_content)
-        print(num_tokens_curr_doc)
+    # Process chunks
+    map_prompt_template = """
+Topic: Natural Disaster
+For Audience: Hawaii County Civil Defense
+For Audience: Emergency Operations Center
 
-    # applying a prompt to each chunk of text
-    map_prompt = """
-            Topic: Natural Disaster
-            For Audience: Hawaii County Civil Defense
-            For Audience: Emergency Operations Center
-            The following is two reports with three sections: Most Affected Areas, Reports by District, and High-Priority Events
+The following is two reports with three sections: Most Affected Areas, Reports by District, and High-Priority Events
 
-    {text}
+{text}
 
-            Please combine these two reports into one report with the same three sections
+Please combine these two reports into one report with the same three sections.
+"""
 
-            PRE-SUMMARY:
-    """
-    map_prompt_template = PromptTemplate(template=map_prompt, input_variables=["text"])
+    organized_chunks = []
+    for i, chunk in enumerate(chunks):
+        print(f"Processing chunk {i + 1}/{num_chunks}...")
+        map_prompt = map_prompt_template.format(text=chunk)
+        result = call_claude(map_prompt)
+        if result:
+            organized_chunks.append(result)
 
-    # prompt to combine all chunks
-    combine_prompt = """
-            Topic: Natural Disaster
-            For Audience: Hawaii County Civil Defense
-            For Audience: Emergency Operations Center
-            The following is two reports with three sections: Most Affected Areas, Reports by District, and High-Priority Events
+    # Combine all organized chunks
+    combined_text = "\n\n".join(organized_chunks)
 
-    {text}
+    # Create final combined report
+    combine_prompt = f"""
+Topic: Natural Disaster
+For Audience: Hawaii County Civil Defense
+For Audience: Emergency Operations Center
 
-            Please combine these two reports into one report with the same three sections.
-            You should produce a final report with this specific format:
+The following is pre-organized content from two reports:
 
-                Format:
-                1) Most Affected Areas 
-                        -list separated by commas
-                2) Reports by District
-                        -list every location in each district with a 3 sentence summary on each location. 
-                If it is not a location in a district in the county of Hawaii, list it under 'Other'.
-                3) High-Priority Events
-                        -Use quotes from the individual reports in their full context.
+{combined_text}
 
-                Format this report as if you are writing in a Word Document
-            """
-    combine_prompt_template = PromptTemplate(template=combine_prompt, input_variables=["text"])
+Please combine these into one cohesive report with this specific format:
 
-    chain = load_summarize_chain(llm=llm, chain_type='map_reduce',
-                                 map_prompt=map_prompt_template,
-                                 combine_prompt=combine_prompt_template,
-                                 verbose=True
-                                 )
+Format:
+1) Most Affected Areas 
+   - List separated by commas
+2) Reports by District
+   - List every location in each district with a 3 sentence summary on each location. 
+   If it is not a location in a district in the county of Hawaii, list it under 'Other'.
+3) High-Priority Events
+   - Use quotes from the individual reports in their full context.
 
-    # llm.smith.evaluation.progress.ProgressBarCallback()
-    output = chain.run(docs)
+Format this report professionally for Hawaii County Civil Defense and Emergency Operations Center.
+"""
 
-    # Writing GPT's output to text file, then opening it for reading
-    with open('finalreport.txt', 'w') as f:
-        f.write(timestamp)
-        f.write(output.strip())
+    print("Generating combined report...")
+    output = call_claude(combine_prompt, max_tokens=8000)
+
+    if output:
+        # Write output to text file
+        with open('finalreport.txt', 'w', encoding='utf-8') as f:
+            f.write(timestamp)
+            f.write(output.strip())
+        print("Combined report written to finalreport.txt")
+    else:
+        print("Failed to generate combined report")
 
 
 def write_report():
-    f = open("finalreport.txt", "r")
+    """Convert text report to PDF"""
+    try:
+        f = open("finalreport.txt", "r", encoding="utf-8")
+    except FileNotFoundError:
+        print("Error: finalreport.txt not found. Generate a report first.")
+        return
 
-    # Formatting PDF
+    # Formatting PDF - use Unicode font
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Times", size=10)
+    pdf.set_font("Arial", size=10)  # Arial has better Unicode support than Times
 
     # Putting each line from file into a "multi-line cell"
-    for x in f:
-        pdf.multi_cell(w=190, h=5, txt=x.strip(), align='L')
-    pdf.output("OutputReport_" + file_timestamp + ".pdf")
+    for line in f:
+        # Replace problematic Unicode characters for PDF compatibility
+        safe_line = line.strip()
+        # Replace Hawaiian characters with closest ASCII equivalents if needed
+        # Or skip lines that cause issues
+        try:
+            pdf.multi_cell(w=190, h=5, txt=safe_line, align='L')
+        except UnicodeEncodeError:
+            # If line has unsupported characters, try to encode safely
+            safe_line = safe_line.encode('ascii', 'ignore').decode('ascii')
+            pdf.multi_cell(w=190, h=5, txt=safe_line, align='L')
+
+    output_filename = f"OutputReport_{file_timestamp.replace(':', '-')}.pdf"
+    pdf.output(output_filename)
     f.close()
 
-    print("Report generated.")
-    input("Press Enter to exit.")
+    print(f"Report generated: {output_filename}")
+
+
+def main():
+    """Main menu"""
+    print("=" * 50)
+    print("Natural Disaster Report Generator (Claude Version)")
+    print("=" * 50)
+    print("\nOptions:")
+    print("1. Generate report from full comments")
+    print("2. Combine two existing reports")
+    print("3. Convert finalreport.txt to PDF")
+    print("4. Exit")
+
+    choice = input("\nEnter your choice (1-4): ")
+
+    if choice == "1":
+        from_full()
+        write_pdf = input("\nGenerate PDF? (y/n): ")
+        if write_pdf.lower() == 'y':
+            write_report()
+    elif choice == "2":
+        combine_reports()
+        write_pdf = input("\nGenerate PDF? (y/n): ")
+        if write_pdf.lower() == 'y':
+            write_report()
+    elif choice == "3":
+        write_report()
+    elif choice == "4":
+        print("Exiting...")
+        return
+    else:
+        print("Invalid choice")
+
+    input("\nPress Enter to exit.")
+
+
+if __name__ == "__main__":
+    main()
