@@ -11,7 +11,7 @@ load_dotenv()
 class FacebookCommentScraper:
     """
     Simple scraper for Facebook post comments
-    Outputs: username, timestamp, comment text to JSON
+    Outputs: timestamp, comment text to JSON
     """
 
     def __init__(self):
@@ -59,7 +59,7 @@ class FacebookCommentScraper:
     def get_all_comments(self, post_id: str) -> List[Dict]:
         """
         Fetch all comments from a post
-        Returns: List of dicts with {username, timestamp, comment}
+        Returns: List of dicts with {timestamp, comment}
 
         Note: post_id should be in format "GROUP_ID_POST_ID"
         """
@@ -68,7 +68,7 @@ class FacebookCommentScraper:
         all_comments = []
         url = f'{self.base_url}/{post_id}/comments'
         params = {
-            'fields': 'from,message,created_time',
+            'fields': 'message,created_time',
             'limit': 100,
             'access_token': self.access_token
         }
@@ -84,14 +84,9 @@ class FacebookCommentScraper:
 
                 comments = data.get('data', [])
 
-                # Extract only the needed fields
+                # Extract only timestamp and comment
                 for comment in comments:
-                    # Get username - handle "Unknown" case
-                    from_data = comment.get('from', {})
-                    username = from_data.get('name', 'Unknown User')
-
                     all_comments.append({
-                        'username': username,
                         'timestamp': comment.get('created_time', ''),
                         'comment': comment.get('message', '')
                     })
