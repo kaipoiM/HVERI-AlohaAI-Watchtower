@@ -57,7 +57,7 @@ def call_claude(prompt, max_tokens=4096):
 def from_full():
     """Process full comments file and generate disaster report"""
     # Specify file here
-    comments_json = "../Graph API/comments.json"
+    comments_json = "../Graph API/comments2.json"
 
     try:
         with open(comments_json, 'r', encoding="utf8") as file:
@@ -83,28 +83,41 @@ def from_full():
 
     # Process each chunk with map prompt
     map_prompt_template = """
-Topic: Natural Disaster
-For Audience: Hawaii County Civil Defense
-For Audience: Emergency Operations Center
+<task>Organize Facebook comments by geographic district</task>
 
-The following is a set of comments taken from a Facebook Group focusing on natural disasters on the island of Hawaii:
+<context>
+<topic>Natural Disaster</topic>
+<source>Facebook Group comments about natural disasters on Hawaii Island</source>
+</context>
 
+<input_data>
 {text}
+</input_data>
 
-Organize each comment to the different districts of the Big Island (South Kohala, North Kohala, Hamakua, North Hilo, South Hilo, Puna, Ka'u, South Kona, and North Kona). 
+<districts>
+<district name="North Kohala">Halaula, Hawi, Kapaau, Puakea Ranch, Mahukona, Kaholena, Kohala Ranch, Upolu, Halawa, Makapala, Niulii, Pulolu</district>
+<district name="South Kohala">Kawaihae, Hapuna, Puako, Waikoloa, Waimea, Waikii, Puukapu</district>
+<district name="Hamakua">Waipio, Kukuihaele, Ahualoa, Honokaa, Paauhau, Kalopa, Paauilo, Kukuaiau, Niupea</district>
+<district name="North Hilo">Ookala, Waipunalei, Laupahoehoe, Papaaloa, Kapehu, Pohakupuka, Ninole, Umauma</district>
+<district name="South Hilo">Hakalau, Honomu, Pepeekeo, Onomea, Papaikou, Paukaa, Puueo, Wainaku, Keaukaha, Panaewa, Kaiwiki, Piihonua, Kaumana, Sunrise Ridge, Waiakea Uka</district>
+<district name="Puna">Kurtistown, Hawaiian Paradise Park, HPP, Hawaiian Acres, Orchidland, Hawaiian Beaches, Ainaloa, Nanawale Estates, Kapoho, Pohoiki, Leilani Estates, Opihikao, Kehena, Kaimu, Mountain View, Glenwood, Fern Acres, Volcano, Kalapana</district>
+<district name="Ka'u">Wood Valley, Pahala, Punaluu, Naalehu, Waiohinu, Ka Lae, Kamaoa, Ocean View, Manuka</district>
+<district name="South Kona">Honomalino, Milolii, Papa Bay, Kona, Hookena, Kealia, Honaunau, Keei, Napoopoo, Captain Cook, Kealakekua</district>
+<district name="North Kona">Honalo, Keauhou, Alii Heights, Hualalai, Kailua-Kona, Kealakehe, Kaloko, Makalawena, Holulaloa, Kaupulehu, Kukio, Puulani Ranch, Makalei Estates</district>
+</districts>
 
-Use this context for each town corresponding to the district:
-- North Kohala: Halaula, Hawi, Kapaau, Puakea Ranch, Mahukona, Kaholena, Kohala Ranch, Upolu, Halawa, Makapala, Niulii, Pulolu
-- South Kohala: Kawaihae, Hapuna, Puako, Waikoloa, Waimea, Waikii, Puukapu
-- Hamakua: Waipio, Kukuihaele, Ahualoa, Honokaa, Paauhau, Kalopa, Paauilo, Kukuaiau, Niupea
-- North Hilo: Ookala, Waipunalei, Laupahoehoe, Papaaloa, Kapehu, Pohakupuka, Ninole, Umauma
-- South Hilo: Hakalau, Honomu, Pepeekeo, Onomea, Papaikou, Paukaa, Puueo, Wainaku, Keaukaha, Panaewa, Kaiwiki, Piihonua, Kaumana, Sunrise Ridge, Waiakea Uka
-- Puna: Kurtistown, Hawaiian Paradise Park, HPP, Hawaiian Acres, Orchidland, Hawaiian Beaches, Ainaloa, Nanawale Estates, Kapoho, Pohoiki, Leilani Estates, Opihikao, Kehena, Kaimu, Mountain View, Glenwood, Fern Acres, Volcano, Kalapana
-- Ka'u: Wood Valley, Pahala, Punaluu, Naalehu, Waiohinu, Ka Lae, Kamaoa, Ocean View, Manuka
-- South Kona: Honomalino, Milolii, Papa Bay, Kona, Hookena, Kealia, Honaunau, Keei, Napoopoo, Captain Cook, Kealakekua
-- North Kona: Honalo, Keauhou, Alii Heights, Hualalai, Kailua-Kona, Kealakehe, Kaloko, Makalawena, Holulaloa, Kaupulehu, Kukio, Puulani Ranch, Makalei Estates
+<instructions>
+1. Organize each comment by district based on location mentioned
+2. Create a separate list of urgent comments that show:
+   - Direct impact on human safety
+   - Impact on essential services (roads, power, water)
+   - Active emergencies requiring immediate attention
+3. EXCLUDE routine maintenance, scheduled work, or non-emergency information
+</instructions>
 
-In another list, organize the most urgent comments (comments that show impact on human safety and access to essential services).
+<output_format>
+Return organized data in a simple text format by district, followed by urgent items list.
+</output_format>
 """
 
     print("Processing chunks with Claude...")
@@ -121,23 +134,46 @@ In another list, organize the most urgent comments (comments that show impact on
 
     # Create final report with combine prompt
     combine_prompt = f"""
-Topic: Natural Disaster
-For Audience: Hawaii County Civil Defense
-For Audience: Emergency Operations Center
+<task>Create a professional Facebook post for emergency updates</task>
 
-The following is a set of organized comments from a Facebook Group focusing on natural disasters on the island of Hawaii:
+<audience>
+<primary>Hawaii County Civil Defense</primary>
+<secondary>Emergency Operations Center</secondary>
+<platform>Facebook</platform>
+</audience>
 
+<input_data>
 {combined_text}
+</input_data>
 
-With these organized comments create a professional natural disaster report with this specific format:
+<strict_requirements>
+<requirement>Use professional tone appropriate for civil defense</requirement>
+<requirement>Include ONLY areas with actual incidents or emergencies</requirement>
+<requirement>EXCLUDE districts with no reported issues</requirement>
+<requirement>Keep post concise</requirement>
+<requirement>Use bullet points or short paragraphs for readability</requirement>
+<requirement>Start with brief situation overview</requirement>
+<requirement>ONLY include information about active emergencies, NOT routine activities</requirement>
+</strict_requirements>
 
-Format:
-1) Most Affected Areas 
-   - List the areas that were experiencing the most negative effects
-2) Reports by District
-   - Write a 3 sentence summary about each district
-3) High-Priority Events
-   - List the comments (that showed the most negative impact on human safety and access to essential services) and a short explanation why it was highlighted with urgency
+<format_structure>
+<opening>Brief timestamp and situation summary (1-2 sentences)</opening>
+<affected_areas>List ONLY districts with active incidents (bullet points)</affected_areas>
+<priority_items>Highlight immediate safety concerns if any exist</priority_items>
+<closing>Brief closing statement with contact info reminder</closing>
+</format_structure>
+
+<exclusions>
+- Do NOT include districts with no incidents
+- Do NOT include "All systems normal" statements
+- Do NOT include routine maintenance unless it affects emergency access
+- Do NOT use formal report headers like "PRIORITY 1" or numbered sections
+- Do NOT create a lengthy formatted report structure
+</exclusions>
+
+<example_tone>
+"We're monitoring [number] active situations across Hawaii Island. [Brief description]. Stay safe and check back for updates."
+</example_tone>
 """
 
     print("Generating final report...")
@@ -183,15 +219,28 @@ def combine_reports():
 
     # Process chunks
     map_prompt_template = """
-Topic: Natural Disaster
-For Audience: Hawaii County Civil Defense
-For Audience: Emergency Operations Center
+<task>Combine two Facebook posts into one</task>
 
-The following is two reports with three sections: Most Affected Areas, Reports by District, and High-Priority Events
+<context>
+<topic>Natural Disaster Updates</topic>
+<source>Two existing Facebook posts from Hawaii County Civil Defense</source>
+</context>
 
+<input_data>
 {text}
+</input_data>
 
-Please combine these two reports into one report with the same three sections.
+<instructions>
+1. Combine information from both posts
+2. Remove duplicate information
+3. Maintain chronological order of events
+4. Keep only active emergencies and incidents
+5. Preserve the Facebook post format
+</instructions>
+
+<output_format>
+Return a single combined text with all incidents organized by district.
+</output_format>
 """
 
     organized_chunks = []
@@ -207,26 +256,48 @@ Please combine these two reports into one report with the same three sections.
 
     # Create final combined report
     combine_prompt = f"""
-Topic: Natural Disaster
-For Audience: Hawaii County Civil Defense
-For Audience: Emergency Operations Center
+<task>Create a professional Facebook post combining two emergency updates</task>
 
-The following is pre-organized content from two reports:
+<audience>
+<primary>Hawaii County Civil Defense</primary>
+<secondary>Emergency Operations Center</secondary>
+<platform>Facebook</platform>
+</audience>
 
+<input_data>
 {combined_text}
+</input_data>
 
-Please combine these into one cohesive report with this specific format:
+<strict_requirements>
+<requirement>Combine incidents from both reports without duplication</requirement>
+<requirement>Use professional tone appropriate for civil defense</requirement>
+<requirement>Include ONLY areas with actual incidents or emergencies</requirement>
+<requirement>EXCLUDE districts with no reported issues</requirement>
+<requirement>Keep post concise</requirement>
+<requirement>Use bullet points or short paragraphs for readability</requirement>
+<requirement>Start with brief situation overview</requirement>
+<requirement>ONLY include information about active emergencies, NOT routine activities</requirement>
+</strict_requirements>
 
-Format:
-1) Most Affected Areas 
-   - List separated by commas
-2) Reports by District
-   - List every location in each district with a 3 sentence summary on each location. 
-   If it is not a location in a district in the county of Hawaii, list it under 'Other'.
-3) High-Priority Events
-   - Use quotes from the individual reports in their full context.
+<format_structure>
+<opening>Brief timestamp and situation summary (1-2 sentences)</opening>
+<affected_areas>List ONLY districts with active incidents (bullet points)</affected_areas>
+<priority_items>Highlight immediate safety concerns if any exist</priority_items>
+<closing>Brief closing statement with contact info reminder</closing>
+</format_structure>
 
-Format this report professionally for Hawaii County Civil Defense and Emergency Operations Center.
+<exclusions>
+- Do NOT include districts with no incidents
+- Do NOT include "All systems normal" statements
+- Do NOT include routine maintenance unless it affects emergency access
+- Do NOT use formal report headers like "PRIORITY 1" or numbered sections
+- Do NOT create a lengthy formatted report structure
+- Do NOT list every location in each district
+</exclusions>
+
+<example_tone>
+"Update as of [time]: We're monitoring [number] active situations across Hawaii Island. [Brief description]. Stay safe and check back for updates."
+</example_tone>
 """
 
     print("Generating combined report...")
