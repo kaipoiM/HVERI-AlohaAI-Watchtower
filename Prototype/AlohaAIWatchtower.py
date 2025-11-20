@@ -3,6 +3,20 @@ AlohaAI Emergency Watchtower - Integrated GUI Application
 Combines Facebook scraping, AI analysis, and GUI interface with markdown rendering
 """
 
+import sys
+import os
+
+# Fix for PyInstaller on Windows
+if hasattr(sys, '_MEIPASS'):
+    # Running as compiled executable
+    os.environ['KIVY_NO_CONSOLELOG'] = '1'
+    # Add the temporary directory to the path
+    os.chdir(sys._MEIPASS)
+
+import multiprocessing
+# Required for Windows executable
+multiprocessing.freeze_support()
+
 import kivy
 kivy.require('2.0.0')
 
@@ -17,7 +31,6 @@ from kivy.clock import Clock
 from kivy.uix.popup import Popup
 from kivy.core.window import Window
 
-import os
 import requests
 import anthropic
 import json
@@ -29,7 +42,18 @@ from dotenv import load_dotenv
 from typing import Optional, List, Dict
 
 # Load environment variables
-load_dotenv()
+# Handle both development and executable environments
+if hasattr(sys, '_MEIPASS'):
+    # Running as executable - look for .env in the same directory as the exe
+    env_path = Path(sys.executable).parent / '.env'
+else:
+    # Running as script - look for .env in current directory
+    env_path = Path('.env')
+
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    load_dotenv()  # Try default locations
 
 
 class MarkdownLabel(Label):
@@ -315,7 +339,15 @@ class WatchtowerGUI(BoxLayout):
         self.generator = EmergencyReportGenerator()
         self.current_report = None
         self.run_thread = None
-        self.output_dir = Path('watchtower_reports')
+
+        # Set output directory based on executable or script mode
+        if hasattr(sys, '_MEIPASS'):
+            # Running as executable - save reports next to the exe
+            self.output_dir = Path(sys.executable).parent / 'watchtower_reports'
+        else:
+            # Running as script
+            self.output_dir = Path('watchtower_reports')
+
         self.output_dir.mkdir(exist_ok=True)
 
         # Build UI
