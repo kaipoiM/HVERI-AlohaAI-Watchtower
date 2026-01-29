@@ -28,7 +28,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onefile --windowed --name "AlohaAI-Watchtower" --icon=NONE TkinterGui.py
+          pyinstaller --onefile --windowed --name "AlohaAI-Watchtower" --icon=NONE Prototype/Tkinter_AlohaAIWatchtower.py
 
       - name: Upload executable
         uses: actions/upload-artifact@v4
