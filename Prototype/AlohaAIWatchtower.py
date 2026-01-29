@@ -285,35 +285,80 @@ Return organized data in a simple text format by district, followed by urgent it
 </input_data>
 
 <strict_requirements>
-<requirement>Use professional tone appropriate for civil defense</requirement>
-<requirement>Include ONLY areas with actual incidents or emergencies</requirement>
-<requirement>EXCLUDE districts with no reported issues</requirement>
-<requirement>Keep post concise</requirement>
-<requirement>Use bullet points or short paragraphs for readability</requirement>
-<requirement>Start with brief situation overview</requirement>
+<requirement>Use professional, authoritative tone appropriate for civil defense</requirement>
+<requirement>Include ONLY districts with actual incidents or emergencies</requirement>
+<requirement>EXCLUDE districts with no reported issues or routine operations</requirement>
+<requirement>Provide sufficient detail for public safety - include what happened, where, current status, and actions taken/needed</requirement>
+<requirement>Use clear formatting with bold headers and bullet points for readability</requirement>
+<requirement>Start with timestamp and brief situation overview</requirement>
 <requirement>ONLY include information about active emergencies, NOT routine activities</requirement>
+<requirement>Do NOT use emojis - maintain formal civil defense communication standards</requirement>
 </strict_requirements>
 
 <format_structure>
-<opening>Brief timestamp and situation summary (1-2 sentences)</opening>
-<affected_areas>List ONLY districts with active incidents (bullet points)</affected_areas>
-<priority_items>Highlight immediate safety concerns if any exist</priority_items>
-<closing>Brief closing statement with contact info reminder</closing>
+<opening>
+- Current timestamp (date and time HST)
+- One sentence summary stating number of active situations being monitored
+- Brief context sentence if needed
+</opening>
+
+<incident_sections>
+For EACH active incident, provide:
+- District name and incident type as bold header
+- Location specifics (roads, mile markers, communities affected)
+- Current status and what's happening now
+- Impact details (evacuations, closures, affected services)
+- Safety concerns (smoke, road conditions, power outages)
+- Actions being taken by authorities
+- What residents should do or avoid
+- Estimated duration or next update time if available
+</incident_sections>
+
+<closing>
+- Emergency contact information (9-1-1 for emergencies)
+- Non-emergency contact number
+- Brief "stay safe" message
+</closing>
 </format_structure>
+
+<detail_guidelines>
+<good_detail_level>
+✓ "Large brush fire near Waikoloa Village (vicinity of mile marker 77) spreading rapidly due to 40mph winds and dry conditions. Evacuations underway for 200+ residents in Waikoloa Village subdivision. Fire potentially spreading toward Puako area. Heavy smoke impacting air quality along Highway 19. Red Cross shelter opening at [location]. Avoid Queen Kaahumanu Highway between mile markers 75-80."
+</good_detail_level>
+
+<insufficient_detail>
+✗ "Fire in Waikoloa area. Evacuations happening. Avoid the highway."
+</insufficient_detail>
+
+<too_much_detail>
+✗ Including exact unit numbers responding, technical equipment details, or minute-by-minute timeline unless critical for public safety
+</too_much_detail>
+</detail_guidelines>
 
 <exclusions>
 - Do NOT include districts with no incidents
-- Do NOT include "All systems normal" statements
-- Do NOT include routine maintenance unless it affects emergency access
-- Do NOT use formal report headers like "PRIORITY 1" or numbered sections
-- Do NOT create a lengthy formatted report structure
+- Do NOT include "All clear" or "No issues" statements for unaffected areas
+- Do NOT include routine maintenance unless it directly impacts emergency response or public safety
+- Do NOT include administrative updates or meeting announcements
+- Do NOT use internal codes or jargon without explanation
+- Do NOT use emojis
 </exclusions>
 
-<example_tone>
-"We're monitoring [number] active situations across Hawaii Island. [Brief description]. Stay safe and check back for updates."
-</example_tone>
-"""
+<tone_examples>
+Opening: "We are currently monitoring 3 active emergency situations across Hawaii Island requiring immediate attention and public awareness."
 
+Incident: "SOUTH KOHALA - WAIKOLOA WILDFIRE: Large brush fire reported near Waikoloa Village (vicinity of mile marker 77). Fire is spreading rapidly due to sustained winds of 35-40mph and extremely dry conditions..."
+
+Closing: "For life-threatening emergencies, dial 9-1-1. For non-emergency information and updates, contact Hawaii County Civil Defense at 808-935-0031. Stay informed through official channels and follow all evacuation orders."
+</tone_examples>
+
+<content_prioritization>
+1. Life safety information (evacuations, shelter locations, immediate dangers)
+2. Critical infrastructure impacts (road closures, power outages affecting large areas)
+3. Ongoing incident status and what's being done
+4. What the public should do or avoid
+5. When to expect next update if situation is evolving
+</content_prioritization> """
         if progress_callback:
             progress_callback("Generating final report...")
 
