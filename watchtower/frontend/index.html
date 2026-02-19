@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Emergency Watchtower</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="scanline-overlay"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-badge">HVERI SYSTEM ACTIVE</div>
+            <h1>
+                <span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
+                <span class="title-sub">Emergency Watchtower</span>
+            </h1>
+            <div class="header-meta">
+                <span id="live-clock" class="live-clock">--:--:-- HST</span>
+                <span class="divider">|</span>
+                <span class="hawaii-label">Hawaii Island Civil Defense Monitor</span>
+            </div>
+        </header>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <label for="fb-url">
+                <span class="label-icon">⬡</span>
+                Facebook Post URL
+            </label>
+            <div class="input-wrapper">
+                <input type="text" id="fb-url"
+                    placeholder="https://facebook.com/groups/hawaiitracker/posts/..."
+                    autocomplete="off" spellcheck="false">
+                <div class="input-glow"></div>
+            </div>
+        </section>
+
+        <!-- Control Buttons -->
+        <section class="controls">
+            <button id="generate-btn" class="btn btn-primary">
+                <span class="btn-icon">▶</span>
+                Generate Report
+            </button>
+            <button id="save-btn" class="btn btn-secondary" disabled>
+                <span class="btn-icon">↓</span>
+                Save Report
+            </button>
+            <button id="clear-btn" class="btn btn-gray">
+                <span class="btn-icon">✕</span>
+                Clear
+            </button>
+        </section>
+
+        <!-- Status Bar -->
+        <section class="status-bar">
+            <div class="status-pill">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-label">STATUS</span>
+                <span id="status-value" class="status-value status-ready">Ready</span>
+            </div>
+            <div class="status-pill">
+                <span class="status-label">COMMENTS</span>
+                <span id="comment-count" class="status-value">—</span>
+            </div>
+            <div class="status-pill" id="elapsed-pill" style="display:none">
+                <span class="status-label">ELAPSED</span>
+                <span id="elapsed-time" class="status-value">0s</span>
+            </div>
+        </section>
+
+        <!-- Progress Log -->
+        <section class="log-section">
+            <div class="log-header">
+                <span class="log-header-title">⬡ Progress Log</span>
+                <span class="log-pulse" id="log-pulse"></span>
+            </div>
+            <div class="log-content" id="log-content">
+                <div class="log-entry log-info">System initialized — enter a Facebook post URL to begin.</div>
+            </div>
+        </section>
+
+        <!-- Report Section -->
+        <section class="report-section">
+            <div class="report-header">
+                <span class="report-header-title">⬡ Emergency Report</span>
+                <span id="report-timestamp" class="report-timestamp"></span>
+            </div>
+            <div class="report-content" id="report-content">
+                <div class="placeholder-text" id="placeholder">
+                    <div class="placeholder-icon">🏝</div>
+                    <div>Awaiting analysis</div>
+                    <div class="placeholder-sub">Enter a Facebook post URL above and click Generate Report</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-header" id="modal-header">
+                <span class="modal-title" id="modal-title">Notification</span>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                Message goes here
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
