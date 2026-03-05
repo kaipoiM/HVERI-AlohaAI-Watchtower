@@ -1,7 +1,28 @@
 /* AlohaAI Emergency Watchtower — Styles */
-/* Tactical dark theme with HVERI red branding */
+/* Light theme with HVERI red/orange/black branding */
 
 :root {
+    --red: #D61515;
+    --red-dark: #990d0d;
+    --red-dim: rgba(214, 21, 21, 0.08);
+    --bg: #f5f6f8;
+    --bg-mid: #eef0f3;
+    --bg-panel: #ffffff;
+    --bg-elevated: #f0f2f5;
+    --border: #dde1e7;
+    --border-bright: #c6ccd4;
+    --text: #111213;
+    --text-dim: #46515c;
+    --text-muted: #8a929c;
+    --green: #16a34a;
+    --orange: #c85a00;
+    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+    --font-ui: 'Barlow', sans-serif;
+    --font-display: 'Barlow Condensed', sans-serif;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] {
     --red: #E61919;
     --red-dark: #990d0d;
     --red-dim: rgba(230, 25, 25, 0.15);
@@ -16,9 +37,6 @@
     --text-muted: #454a50;
     --green: #22c55e;
     --orange: #f97316;
-    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
-    --font-ui: 'Barlow', sans-serif;
-    --font-display: 'Barlow Condensed', sans-serif;
 }
 
 *, *::before, *::after {
@@ -76,6 +94,27 @@ body {
     padding: 20px 0 14px;
     border-bottom: 1px solid var(--border);
     position: relative;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-dim);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.theme-toggle:hover {
+    background: var(--bg-mid);
+    border-color: var(--red);
+    color: var(--text);
 }
 
 .header-badge {
@@ -487,7 +526,7 @@ body {
     margin-bottom: 10px;
 }
 
-.report-body li { margin: 5px 0; color: #c8ced4; }
+.report-body li { margin: 5px 0; color: var(--text-dim); }
 
 .report-body strong { color: var(--text); font-weight: 600; }
 
@@ -515,7 +554,7 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.45);
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -530,7 +569,7 @@ body {
     border-radius: 4px;
     min-width: 340px;
     max-width: 480px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14);
     animation: modal-in 0.18s ease-out;
 }
 

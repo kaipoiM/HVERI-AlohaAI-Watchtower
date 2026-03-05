@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/watchtower/frontend/styles.css">
 </head>
 <body>
     <div class="scanline-overlay"></div>
@@ -15,6 +15,7 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
+            <button id="theme-toggle" class="theme-toggle" title="Switch to dark mode">🌙 Dark Mode</button>
             <div class="header-badge">HVERI SYSTEM ACTIVE</div>
             <h1>
                 <span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
@@ -22,8 +23,6 @@
             </h1>
             <div class="header-meta">
                 <span id="live-clock" class="live-clock">--:--:-- HST</span>
-                <span class="divider">|</span>
-                <span class="hawaii-label">Hawaii Island Civil Defense Monitor</span>
             </div>
         </header>
 
@@ -114,6 +113,6 @@
         </div>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/watchtower/frontend/app.js"></script>
 </body>
 </html>

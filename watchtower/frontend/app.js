@@ -23,6 +23,32 @@ const modalTitle    = document.getElementById('modal-title');
 const modalBody     = document.getElementById('modal-body');
 const modalClose    = document.getElementById('modal-close');
 
+// ── Theme Toggle ───────────────────────────────────────────────────────────
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggleBtn.textContent = '☀️ Light Mode';
+        themeToggleBtn.title = 'Switch to light mode';
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggleBtn.textContent = '🌙 Dark Mode';
+        themeToggleBtn.title = 'Switch to dark mode';
+    }
+    localStorage.setItem('theme', theme);
+}
+
+// Initialise: saved preference → system preference → light
+const savedTheme = localStorage.getItem('theme');
+const systemDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyTheme(savedTheme || (systemDark ? 'dark' : 'light'));
+
+themeToggleBtn.addEventListener('click', () => {
+    const isDark = document.documentElement.hasAttribute('data-theme');
+    applyTheme(isDark ? 'light' : 'dark');
+});
+
 // ── State ──────────────────────────────────────────────────────────────────
 let currentReport = null;
 let sseController  = null; // AbortController for the fetch stream
