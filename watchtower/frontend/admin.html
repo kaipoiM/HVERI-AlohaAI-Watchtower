@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlohaAI Emergency Watchtower</title>
+    <title>AlohaAI Emergency Watchtower — Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/watchtower/frontend/styles.css">
 </head>
 <body>
-    <div class="scanline-overlay"></div>
 
     <div class="container">
+
         <!-- Header -->
         <header class="header">
             <button id="theme-toggle" class="theme-toggle" title="Switch to dark mode">🌙 Dark Mode</button>
@@ -26,21 +26,32 @@
             </div>
         </header>
 
-        <!-- Input Section -->
-        <section class="input-section">
-            <label for="fb-url">
-                <span class="label-icon">⬡</span>
-                Facebook Post URL
-            </label>
-            <div class="input-wrapper">
-                <input type="text" id="fb-url"
-                    placeholder="https://facebook.com/groups/hawaiitracker/posts/..."
-                    autocomplete="off" spellcheck="false">
-                <div class="input-glow"></div>
+        <!-- Status Bar -->
+        <section class="status-bar">
+            <div class="status-pill">
+                <span class="status-dot" id="status-dot"></span>
+                <span class="status-label">STATUS</span>
+                <span id="status-value" class="status-value status-ready">Ready</span>
+            </div>
+            <div class="status-pill">
+                <span class="status-label">PENDING</span>
+                <span id="pending-count" class="status-value">—</span>
+            </div>
+            <div class="status-pill">
+                <span class="status-label">TOTAL</span>
+                <span id="total-count" class="status-value">—</span>
+            </div>
+            <div class="status-pill">
+                <span class="status-label">LAST REPORT</span>
+                <span id="last-report-time" class="status-value">—</span>
+            </div>
+            <div class="status-pill" id="elapsed-pill" style="display:none">
+                <span class="status-label">ELAPSED</span>
+                <span id="elapsed-time" class="status-value">0s</span>
             </div>
         </section>
 
-        <!-- Control Buttons -->
+        <!-- Controls -->
         <section class="controls">
             <button id="generate-btn" class="btn btn-primary">
                 <span class="btn-icon">▶</span>
@@ -56,60 +67,95 @@
             </button>
         </section>
 
-        <!-- Status Bar -->
-        <section class="status-bar">
-            <div class="status-pill">
-                <span class="status-dot" id="status-dot"></span>
-                <span class="status-label">STATUS</span>
-                <span id="status-value" class="status-value status-ready">Ready</span>
-            </div>
-            <div class="status-pill">
-                <span class="status-label">COMMENTS</span>
-                <span id="comment-count" class="status-value">—</span>
-            </div>
-            <div class="status-pill" id="elapsed-pill" style="display:none">
-                <span class="status-label">ELAPSED</span>
-                <span id="elapsed-time" class="status-value">0s</span>
-            </div>
-        </section>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="report">⬡ Report</button>
+            <button class="tab-btn" data-tab="submissions">
+                ⬡ Submissions
+                <span class="tab-badge hidden" id="pending-badge">0</span>
+            </button>
+        </div>
 
-        <!-- Progress Log -->
-        <section class="log-section">
-            <div class="log-header">
-                <span class="log-header-title">⬡ Progress Log</span>
-                <span class="log-pulse" id="log-pulse"></span>
-            </div>
-            <div class="log-content" id="log-content">
-                <div class="log-entry log-info">System initialized — enter a Facebook post URL to begin.</div>
-            </div>
-        </section>
+        <!-- TAB: REPORT -->
+        <div class="tab-panel active" id="tab-report">
 
-        <!-- Report Section -->
-        <section class="report-section">
-            <div class="report-header">
-                <span class="report-header-title">⬡ Emergency Report</span>
-                <span id="report-timestamp" class="report-timestamp"></span>
-            </div>
-            <div class="report-content" id="report-content">
-                <div class="placeholder-text" id="placeholder">
-                    <div class="placeholder-icon">🏝</div>
-                    <div>Awaiting analysis</div>
-                    <div class="placeholder-sub">Enter a Facebook post URL above and click Generate Report</div>
+            <section class="log-section">
+                <div class="log-header">
+                    <span class="log-header-title">⬡ Progress Log</span>
+                    <span class="log-pulse" id="log-pulse"></span>
                 </div>
-            </div>
-        </section>
-    </div>
+                <div class="log-content" id="log-content">
+                    <div class="log-entry log-info">System initialized — click Generate Report to analyse pending submissions.</div>
+                </div>
+            </section>
+
+            <section class="report-section">
+                <div class="report-header">
+                    <span class="report-header-title">⬡ Emergency Report</span>
+                    <span id="report-timestamp" class="report-timestamp"></span>
+                </div>
+                <div class="report-content" id="report-content">
+                    <div class="placeholder-text">
+                        <div class="placeholder-icon">🏝</div>
+                        <div>Awaiting analysis</div>
+                        <div class="placeholder-sub">Click Generate Report to process pending submissions</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- TAB: SUBMISSIONS -->
+        <div class="tab-panel" id="tab-submissions">
+
+            <section class="submissions-panel">
+                <div class="submissions-toolbar">
+                    <span class="submissions-title">⬡ Citizen Submissions</span>
+
+                    <select class="filter-select" id="filter-district">
+                        <option value="">All Districts</option>
+                        <option value="North Kohala">North Kohala</option>
+                        <option value="South Kohala">South Kohala</option>
+                        <option value="North Kona">North Kona</option>
+                        <option value="South Kona">South Kona</option>
+                        <option value="Ka'u">Ka'u</option>
+                        <option value="Puna">Puna</option>
+                        <option value="South Hilo">South Hilo</option>
+                        <option value="North Hilo">North Hilo</option>
+                        <option value="Hamakua">Hamakua</option>
+                    </select>
+
+                    <select class="filter-select" id="filter-severity">
+                        <option value="">All Severity</option>
+                        <option value="high">High</option>
+                        <option value="medium">Moderate</option>
+                        <option value="low">Low</option>
+                    </select>
+
+                    <div class="toolbar-spacer"></div>
+                    <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+                </div>
+
+                <div class="submissions-list" id="submissions-list">
+                    <div class="submission-empty">
+                        <div class="submission-empty-icon">📋</div>
+                        <div>No submissions yet</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+    </div><!-- /container -->
 
     <!-- Modal -->
     <div class="modal-overlay" id="modal-overlay">
-        <div class="modal" id="modal">
+        <div class="modal">
             <div class="modal-header" id="modal-header">
                 <span class="modal-title" id="modal-title">Notification</span>
                 <button class="modal-close" id="modal-close">&times;</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                Message goes here
-            </div>
+            <div class="modal-body" id="modal-body"></div>
         </div>
     </div>
 
