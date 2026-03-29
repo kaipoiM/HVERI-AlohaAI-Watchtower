@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Watchtower — Admin Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #D61515; --red-dark: #990d0d; --red-dim: rgba(214,21,21,0.08);
+            --bg: #f5f6f8; --bg-mid: #eef0f3; --bg-panel: #ffffff;
+            --bg-elevated: #f0f2f5; --border: #dde1e7; --border-bright: #c6ccd4;
+            --text: #111213; --text-dim: #46515c; --text-muted: #8a929c;
+            --green: #16a34a; --orange: #c85a00;
+            --font: 'Poppins', sans-serif;
+        }
+        [data-theme="dark"] {
+            --red: #E61919; --red-dark: #990d0d; --red-dim: rgba(230,25,25,0.15);
+            --bg: #111213; --bg-mid: #191b1c; --bg-panel: #1e2022;
+            --bg-elevated: #252729; --border: #2a2d30; --border-bright: #3a3d42;
+            --text: #e8eaec; --text-dim: #7a8088; --text-muted: #454a50;
+            --green: #22c55e; --orange: #f97316;
+        }
+        *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+        html { background:var(--bg); }
+        body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding:24px 16px 48px; overflow-x:hidden; }
+
+        .demo-banner { background:var(--orange); color:#fff; text-align:center; padding:7px 16px; font-size:12px; font-weight:600; letter-spacing:0.06em; border-radius:3px; margin-bottom:4px; }
+
+        .container { width:100%; max-width:920px; display:flex; flex-direction:column; gap:12px; }
+
+        .header { text-align:center; padding:20px 0 14px; border-bottom:1px solid var(--border); position:relative; }
+        .theme-toggle { position:absolute; top:20px; right:0; background:var(--bg-elevated); border:1px solid var(--border-bright); border-radius:3px; padding:6px 10px; cursor:pointer; font-size:15px; color:var(--text-dim); transition:all 0.15s; }
+        .theme-toggle:hover { background:var(--bg-mid); border-color:var(--red); color:var(--text); }
+        .header-badge { display:inline-block; font-size:10px; letter-spacing:0.15em; color:var(--red); background:var(--red-dim); border:1px solid var(--red-dark); padding:3px 10px; border-radius:2px; margin-bottom:10px; }
+        .header h1 { font-weight:700; font-size:32px; letter-spacing:0.02em; line-height:1; margin-bottom:8px; }
+        .title-aloha { color:var(--text); } .title-ai { color:var(--red); }
+        .title-sub { display:block; font-size:16px; font-weight:600; letter-spacing:0.12em; color:var(--text-dim); text-transform:uppercase; margin-top:4px; }
+        .header-meta { font-size:12px; color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:10px; margin-top:6px; }
+        .live-clock { color:var(--green); letter-spacing:0.08em; }
+
+        .status-bar { display:flex; gap:6px; flex-wrap:wrap; }
+        .status-pill { display:flex; align-items:center; gap:8px; background:var(--bg-panel); border:1px solid var(--border); border-radius:3px; padding:7px 14px; font-size:12px; }
+        .status-label { color:var(--text-muted); letter-spacing:0.1em; font-size:10px; }
+        .status-value { font-weight:600; letter-spacing:0.05em; }
+        .status-dot { width:7px; height:7px; border-radius:50%; background:var(--text-muted); flex-shrink:0; transition:background 0.3s; }
+        .status-ready { color:var(--text-muted); } .status-complete { color:var(--green); } .status-processing { color:var(--orange); } .status-error { color:var(--red); }
+        .dot-ready { background:var(--text-muted); } .dot-complete { background:var(--green); box-shadow:0 0 6px var(--green); }
+        .dot-processing { background:var(--orange); box-shadow:0 0 6px var(--orange); animation:pulse-dot 1s infinite; }
+        .dot-error { background:var(--red); box-shadow:0 0 6px var(--red); }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .controls { display:flex; gap:8px; }
+        .btn { flex:1; padding:13px 16px; font-family:var(--font); font-size:15px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; border:1px solid transparent; border-radius:3px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.15s; position:relative; overflow:hidden; }
+        .btn:active:not(:disabled) { transform:scale(0.985); }
+        .btn-icon { font-size:13px; opacity:0.85; }
+        .btn-primary { background:var(--red); color:#fff; border-color:var(--red); }
+        .btn-primary:hover:not(:disabled) { box-shadow:0 0 16px rgba(230,25,25,0.4); }
+        .btn-secondary { background:var(--red-dark); color:#fff; border-color:var(--red-dark); }
+        .btn-secondary:disabled { background:var(--bg-elevated); border-color:var(--border); color:var(--text-muted); cursor:not-allowed; }
+        .btn-gray { background:var(--bg-elevated); color:var(--text-dim); border-color:var(--border-bright); }
+        .btn-gray:hover:not(:disabled) { border-color:var(--text-muted); color:var(--text); }
+
+        .tab-nav { display:flex; gap:4px; border-bottom:1px solid var(--border); }
+        .tab-btn { font-family:var(--font); font-size:12px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; padding:8px 16px; background:none; border:1px solid transparent; border-bottom:none; border-radius:3px 3px 0 0; cursor:pointer; color:var(--text-muted); position:relative; bottom:-1px; transition:all 0.15s; }
+        .tab-btn:hover { color:var(--text-dim); background:var(--bg-elevated); }
+        .tab-btn.active { color:var(--red); background:var(--bg-panel); border-color:var(--border); border-bottom-color:var(--bg-panel); }
+        .tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; background:var(--red); color:#fff; font-size:10px; font-weight:700; border-radius:9px; margin-left:6px; line-height:1; }
+        .tab-badge.hidden { display:none; }
+        .tab-panel { display:none; flex-direction:column; gap:12px; }
+        .tab-panel.active { display:flex; }
+
+        .log-section { background:var(--bg-panel); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+        .log-header { background:var(--bg-elevated); padding:7px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+        .log-header-title { font-size:11px; font-weight:600; letter-spacing:0.1em; color:var(--red); text-transform:uppercase; }
+        .log-pulse { width:6px; height:6px; border-radius:50%; background:var(--text-muted); transition:background 0.3s; }
+        .log-pulse.active { background:var(--orange); animation:pulse-dot 0.8s infinite; }
+        .log-content { padding:10px 14px; max-height:130px; overflow-y:auto; font-size:12.5px; display:flex; flex-direction:column; gap:2px; }
+        .log-entry { padding:2px 0; color:var(--text-dim); line-height:1.5; }
+        .log-entry::before { content:attr(data-ts); color:var(--text-muted); margin-right:10px; font-size:11px; }
+        .log-success { color:var(--green); } .log-error { color:var(--red); } .log-processing { color:var(--orange); } .log-info { color:var(--text-dim); }
+
+        .report-section { background:var(--bg-panel); border:1px solid var(--border); border-radius:3px; overflow:hidden; min-height:320px; display:flex; flex-direction:column; }
+        .report-header { background:var(--bg-elevated); padding:7px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); }
+        .report-header-title { font-size:11px; font-weight:600; letter-spacing:0.1em; color:var(--red); text-transform:uppercase; }
+        .report-timestamp { font-size:11px; color:var(--text-muted); }
+        .report-content { padding:20px; overflow-y:auto; max-height:460px; flex:1; line-height:1.65; font-size:14px; }
+        .placeholder-text { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:60px 20px; color:var(--text-muted); font-size:13px; text-align:center; }
+        .placeholder-icon { font-size:36px; opacity:0.4; margin-bottom:4px; }
+        .placeholder-sub { font-size:11px; color:var(--text-muted); opacity:0.6; }
+        .report-body { color:var(--text); }
+        .report-body p { margin-bottom:10px; }
+        .report-body h1,.report-body h2,.report-body h3 { color:var(--red); margin:16px 0 8px; letter-spacing:0.04em; }
+        .report-body h1 { font-size:18px; } .report-body h2 { font-size:16px; } .report-body h3 { font-size:15px; }
+        .report-body ul,.report-body ol { margin-left:22px; margin-bottom:10px; }
+        .report-body li { margin:5px 0; color:var(--text-dim); }
+        .report-body strong { color:var(--text); font-weight:600; }
+        .report-body hr { border:none; border-top:1px solid var(--border-bright); margin:16px 0; }
+        .urgent-kw { background:var(--red); color:#fff; padding:1px 5px; border-radius:2px; font-weight:700; font-size:0.92em; }
+
+        /* Submissions */
+        .submissions-panel { background:var(--bg-panel); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+        .submissions-toolbar { background:var(--bg-elevated); border-bottom:1px solid var(--border); padding:8px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .submissions-title { font-size:11px; font-weight:600; letter-spacing:0.1em; color:var(--red); text-transform:uppercase; margin-right:4px; }
+        .filter-select { padding:4px 24px 4px 8px; font-family:var(--font); font-size:11px; font-weight:500; background:var(--bg-panel); border:1px solid var(--border-bright); border-radius:3px; color:var(--text-dim); outline:none; cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%238a929c' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 7px center; }
+        .filter-select:focus { border-color:var(--red); }
+        .toolbar-spacer { flex:1; }
+        .refresh-btn { font-family:var(--font); font-size:11px; font-weight:600; padding:4px 10px; background:var(--bg-panel); border:1px solid var(--border-bright); border-radius:3px; color:var(--text-dim); cursor:pointer; transition:all 0.15s; }
+        .refresh-btn:hover { border-color:var(--red); color:var(--red); }
+        .submissions-list { overflow-y:auto; max-height:460px; display:flex; flex-direction:column; }
+        .submission-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:48px 20px; color:var(--text-muted); font-size:13px; text-align:center; }
+        .sub-card { border-bottom:1px solid var(--border); padding:12px 14px; display:flex; flex-direction:column; gap:7px; transition:background 0.12s; }
+        .sub-card:last-child { border-bottom:none; }
+        .sub-card:hover { background:var(--bg-elevated); }
+        .sub-card.deleted { opacity:0.35; pointer-events:none; }
+        .sub-top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .sub-type-badge { font-size:11px; font-weight:600; padding:2px 7px; border-radius:2px; border:1px solid var(--border-bright); background:var(--bg-elevated); color:var(--text-dim); white-space:nowrap; }
+        .sub-district { font-size:12px; font-weight:600; color:var(--text); }
+        .sub-location { font-size:11px; color:var(--text-muted); }
+        .sub-spacer { flex:1; }
+        .sub-time { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+        .sub-sev { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:2px 6px; border-radius:2px; }
+        .sub-sev.low { color:var(--green); background:rgba(22,163,74,0.1); }
+        .sub-sev.medium { color:var(--orange); background:rgba(200,90,0,0.1); }
+        .sub-sev.high { color:var(--red); background:var(--red-dim); }
+        .sub-desc { font-size:13px; color:var(--text-dim); line-height:1.55; }
+        .sub-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .sub-evac { font-size:11px; color:var(--orange); font-weight:500; }
+        .sub-ref { font-size:10px; color:var(--text-muted); letter-spacing:0.06em; }
+        .sub-reporter { font-size:11px; color:var(--text-muted); }
+        .sub-actions { display:flex; gap:6px; align-items:center; margin-top:2px; }
+        .mod-btn { font-family:var(--font); font-size:11px; font-weight:600; padding:4px 10px; border-radius:3px; border:1px solid var(--red-dim); background:var(--bg-elevated); color:var(--red); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+        .mod-btn:hover { background:var(--red-dim); border-color:var(--red); }
+
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); justify-content:center; align-items:center; z-index:1000; backdrop-filter:blur(3px); }
+        .modal-overlay.active { display:flex; }
+        .modal { background:var(--bg-panel); border:1px solid var(--border-bright); border-radius:4px; min-width:340px; max-width:480px; box-shadow:0 8px 40px rgba(0,0,0,0.14); animation:modal-in 0.18s ease-out; }
+        @keyframes modal-in { from{transform:translateY(-16px);opacity:0} to{transform:translateY(0);opacity:1} }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--border); }
+        .modal-header.success { background:rgba(34,197,94,0.15); border-bottom-color:rgba(34,197,94,0.3); }
+        .modal-header.error { background:var(--red-dim); border-bottom-color:var(--red-dark); }
+        .modal-header.info { background:var(--red-dim); border-bottom-color:var(--red-dark); }
+        .modal-title { font-size:15px; font-weight:700; letter-spacing:0.04em; color:var(--text); }
+        .modal-header.success .modal-title { color:var(--green); } .modal-header.error .modal-title { color:var(--red); }
+        .modal-close { background:none; border:none; color:var(--text-dim); font-size:22px; cursor:pointer; line-height:1; transition:color 0.15s; }
+        .modal-close:hover { color:var(--text); }
+        .modal-body { padding:18px; color:var(--text-dim); font-size:14px; line-height:1.55; white-space:pre-wrap; }
+
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--border-bright); border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+
+        @media(max-width:600px) { .controls{flex-direction:column} .status-bar{flex-direction:column} .header h1{font-size:26px} }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="demo-banner">⬡ DEMO MODE — All data is simulated. No backend required.</div>
+
+    <header class="header">
+        <button id="theme-toggle" class="theme-toggle">🌙 Dark Mode</button>
+        <div class="header-badge">HVERI SYSTEM ACTIVE</div>
+        <h1><span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
+            <span class="title-sub">Emergency Watchtower</span></h1>
+        <div class="header-meta"><span id="live-clock" class="live-clock">--:--:-- HST</span></div>
+    </header>
+
+    <section class="status-bar">
+        <div class="status-pill">
+            <span class="status-dot" id="status-dot"></span>
+            <span class="status-label">STATUS</span>
+            <span id="status-value" class="status-value status-ready">Ready</span>
+        </div>
+        <div class="status-pill">
+            <span class="status-label">PENDING</span>
+            <span id="pending-count" class="status-value">4</span>
+        </div>
+        <div class="status-pill">
+            <span class="status-label">TOTAL</span>
+            <span id="total-count" class="status-value">6</span>
+        </div>
+        <div class="status-pill">
+            <span class="status-label">LAST REPORT</span>
+            <span id="last-report-time" class="status-value">—</span>
+        </div>
+        <div class="status-pill" id="elapsed-pill" style="display:none">
+            <span class="status-label">ELAPSED</span>
+            <span id="elapsed-time" class="status-value">0s</span>
+        </div>
+    </section>
+
+    <section class="controls">
+        <button id="generate-btn" class="btn btn-primary"><span class="btn-icon">▶</span> Generate Report</button>
+        <button id="save-btn" class="btn btn-secondary" disabled><span class="btn-icon">↓</span> Save Report</button>
+        <button id="clear-btn" class="btn btn-gray"><span class="btn-icon">✕</span> Clear</button>
+    </section>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="report">⬡ Report</button>
+        <button class="tab-btn" data-tab="submissions">⬡ Submissions <span class="tab-badge" id="pending-badge">4</span></button>
+    </div>
+
+    <!-- TAB: REPORT -->
+    <div class="tab-panel active" id="tab-report">
+        <section class="log-section">
+            <div class="log-header">
+                <span class="log-header-title">⬡ Progress Log</span>
+                <span class="log-pulse" id="log-pulse"></span>
+            </div>
+            <div class="log-content" id="log-content">
+                <div class="log-entry log-info" data-ts="">System initialized — click Generate Report to analyse pending submissions.</div>
+            </div>
+        </section>
+
+        <section class="report-section">
+            <div class="report-header">
+                <span class="report-header-title">⬡ Emergency Report</span>
+                <span id="report-timestamp" class="report-timestamp"></span>
+            </div>
+            <div class="report-content" id="report-content">
+                <div class="placeholder-text">
+                    <div class="placeholder-icon">🏝</div>
+                    <div>Awaiting analysis</div>
+                    <div class="placeholder-sub">Click Generate Report to process pending submissions</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB: SUBMISSIONS -->
+    <div class="tab-panel" id="tab-submissions">
+        <section class="submissions-panel">
+            <div class="submissions-toolbar">
+                <span class="submissions-title">⬡ Citizen Submissions</span>
+                <select class="filter-select" id="filter-district">
+                    <option value="">All Districts</option>
+                    <option value="North Kohala">North Kohala</option>
+                    <option value="South Kohala">South Kohala</option>
+                    <option value="North Kona">North Kona</option>
+                    <option value="South Kona">South Kona</option>
+                    <option value="Ka'u">Ka'u</option>
+                    <option value="Puna">Puna</option>
+                    <option value="South Hilo">South Hilo</option>
+                    <option value="North Hilo">North Hilo</option>
+                    <option value="Hamakua">Hamakua</option>
+                </select>
+                <select class="filter-select" id="filter-severity">
+                    <option value="">All Severity</option>
+                    <option value="high">High</option>
+                    <option value="medium">Moderate</option>
+                    <option value="low">Low</option>
+                </select>
+                <div class="toolbar-spacer"></div>
+                <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+            </div>
+            <div class="submissions-list" id="submissions-list"></div>
+        </section>
+    </div>
+
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <div class="modal-header" id="modal-header">
+            <span class="modal-title" id="modal-title">Notification</span>
+            <button class="modal-close" id="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+    </div>
+</div>
+
+<script>
+// ── Theme ──────────────────────────────────────────────────────────────────
+const themeToggleBtn = document.getElementById('theme-toggle');
+function applyTheme(t) {
+    if (t === 'dark') { document.documentElement.setAttribute('data-theme','dark'); themeToggleBtn.textContent='☀️ Light Mode'; }
+    else { document.documentElement.removeAttribute('data-theme'); themeToggleBtn.textContent='🌙 Dark Mode'; }
+    localStorage.setItem('theme', t);
+}
+applyTheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'));
+themeToggleBtn.addEventListener('click', () => applyTheme(document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark'));
+
+// ── Clock ──────────────────────────────────────────────────────────────────
+function updateClock() {
+    const hst = new Date(new Date().toLocaleString('en-US',{timeZone:'Pacific/Honolulu'}));
+    const p = n => String(n).padStart(2,'0');
+    document.getElementById('live-clock').textContent = `${p(hst.getHours())}:${p(hst.getMinutes())}:${p(hst.getSeconds())} HST`;
+}
+setInterval(updateClock,1000); updateClock();
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'submissions') renderSubmissions();
+    });
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const logContent    = document.getElementById('log-content');
+const logPulse      = document.getElementById('log-pulse');
+const statusValue   = document.getElementById('status-value');
+const statusDot     = document.getElementById('status-dot');
+const elapsedPill   = document.getElementById('elapsed-pill');
+const elapsedTimeEl = document.getElementById('elapsed-time');
+const reportContent = document.getElementById('report-content');
+const reportTs      = document.getElementById('report-timestamp');
+const saveBtn       = document.getElementById('save-btn');
+const generateBtn   = document.getElementById('generate-btn');
+const pendingBadge  = document.getElementById('pending-badge');
+const pendingCount  = document.getElementById('pending-count');
+const modalOverlay  = document.getElementById('modal-overlay');
+const modalHeader   = document.getElementById('modal-header');
+const modalTitle    = document.getElementById('modal-title');
+const modalBody     = document.getElementById('modal-body');
+
+let currentReport = null, startTime = null, elapsedTimer = null;
+
+function ts() { return new Date().toLocaleTimeString('en-US',{hour12:false}); }
+
+function addLog(msg, level='info') {
+    const e = document.createElement('div');
+    e.className = `log-entry log-${level}`;
+    e.dataset.ts = `[${ts()}]`;
+    e.textContent = msg;
+    logContent.appendChild(e);
+    logContent.scrollTop = logContent.scrollHeight;
+}
+
+function setStatus(text, state) {
+    statusValue.textContent = text;
+    statusValue.className = `status-value status-${state}`;
+    statusDot.className = `status-dot dot-${state}`;
+    logPulse.classList.toggle('active', state === 'processing');
+}
+
+function startElapsed() {
+    startTime = Date.now(); elapsedPill.style.display='';
+    elapsedTimer = setInterval(() => { elapsedTimeEl.textContent = Math.floor((Date.now()-startTime)/1000)+'s'; }, 1000);
+}
+function stopElapsed() { clearInterval(elapsedTimer); }
+
+function showModal(title, msg, type='info') {
+    modalTitle.textContent=title; modalBody.textContent=msg;
+    modalHeader.className=`modal-header ${type}`; modalOverlay.classList.add('active');
+}
+function hideModal() { modalOverlay.classList.remove('active'); }
+document.getElementById('modal-close').addEventListener('click', hideModal);
+modalOverlay.addEventListener('click', e => { if(e.target===modalOverlay) hideModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') hideModal(); });
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function timeAgo(iso) {
+    if(!iso) return '—';
+    const d = Math.floor((Date.now()-new Date(iso))/1000);
+    if(d<60) return d+'s ago'; if(d<3600) return Math.floor(d/60)+'m ago';
+    if(d<86400) return Math.floor(d/3600)+'h ago';
+    return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+// ── Markdown renderer ──────────────────────────────────────────────────────
+function md2html(md) {
+    let h = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/^[-•] (.+)$/gm,'<li>$1</li>').replace(/^---+$/gm,'<hr>')
+        .replace(/\n\n/g,'</p><p>').replace(/(<li>.*<\/li>)\n*/gs,'<ul>$1</ul>');
+    h = `<p>${h}</p>`;
+    h = h.replace(/\b(URGENT|MANDATORY EVACUATION|EVACUATE|EVACUATIONS|COMPLETELY CLOSED|CLOSED|FATALITIES?|CRITICAL|EMERGENCY|IMMEDIATE)\b/gi,'<span class="urgent-kw">$1</span>');
+    return h;
+}
+
+// ── Demo Data ──────────────────────────────────────────────────────────────
+const now = new Date();
+const mago = m => new Date(now - m*60000).toISOString();
+
+let allSubmissions = [
+    {id:1, incident_type:'fire',     district:'South Kohala', location:'Waikoloa Village',      description:'Large smoke column visible from Mauna Lani Drive, spreading northeast toward residential area. Flames visible on hillside.',     severity:'high',   evacuation:'mandatory',    reporter_name:'K. Akana',  ref_code:'HI-A3BX7K', timestamp:mago(8)  },
+    {id:2, incident_type:'power',    district:'Puna',         location:'Hawaiian Paradise Park', description:'Power out across HPP sections 1–4. Traffic lights on Pahoa-Kapoho Rd are down. HELCO truck seen heading to substation.',        severity:'medium', evacuation:'',             reporter_name:'',          ref_code:'HI-M9QT2R', timestamp:mago(14) },
+    {id:3, incident_type:'road',     district:'South Hilo',   location:'Hwy 19 near mile 14',   description:'Multi-vehicle accident blocking both lanes. Police on scene. Ambulance just arrived. Use alternate route via Hwy 130.',          severity:'high',   evacuation:'road_blocked', reporter_name:'T. Reyes',  ref_code:'HI-C7WN4P', timestamp:mago(22) },
+    {id:4, incident_type:'flooding', district:'Hamakua',      location:'Honokaa town center',   description:'Water over road on Lehua St near the park. About a foot deep, cars getting stuck. Drainage backed up.',                          severity:'medium', evacuation:'voluntary',    reporter_name:'',          ref_code:'HI-Z2LD8F', timestamp:mago(35) },
+    {id:5, incident_type:'other',    district:'North Kona',   location:'',                      description:'Just want to say the community FB group is full of misinformation about the fire. Please verify before acting on anything.',     severity:'low',    evacuation:'',             reporter_name:'Anonymous', ref_code:'HI-R4VH6J', timestamp:mago(41) },
+    {id:6, incident_type:'fire',     district:'South Kohala', location:'Near Puako turnoff',    description:'Smoke getting thicker here on Queen K. Wind has shifted west. Can smell it strongly now. Neighbors starting to pack up.',        severity:'high',   evacuation:'mandatory',    reporter_name:'L. Santos', ref_code:'HI-B8KE1N', timestamp:mago(52) },
+];
+
+const DEMO_REPORT = `## HAWAII COUNTY CIVIL DEFENSE — EMERGENCY UPDATE
+
+*${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} — ${new Date().toLocaleTimeString('en-US',{timeZone:'Pacific/Honolulu',hour:'2-digit',minute:'2-digit'})} HST*
+
+We are currently monitoring **3 active emergency situations** across Hawaii Island affecting residents in South Kohala, South Hilo, and Puna.
+
+---
+
+## ACTIVE INCIDENTS
+
+### 🔥 SOUTH KOHALA — Brush Fire
+
+A fast-moving brush fire is burning in the Waikoloa Village area, with smoke visible from multiple locations along Queen K Highway. Wind has shifted west, pushing fire toward Puako.
+
+- **MANDATORY EVACUATIONS** in effect for Waikoloa Village
+- Fire estimated at 200+ acres and growing
+- Red Cross shelter open at Kealakehe High School
+- Air quality advisory in effect — stay indoors if possible
+
+### 🚨 SOUTH HILO — Highway 19 Closure
+
+Highway 19 is **COMPLETELY CLOSED** near mile marker 14 due to a multi-vehicle accident.
+
+- Police and EMS on scene
+- Use Highway 130 or Waimea as alternate routes
+- Expect significant delays — closure duration unknown
+
+### ⚡ PUNA — Power Outage
+
+Widespread power outage affecting Hawaiian Paradise Park sections 1–4.
+
+- Traffic signals down on Pahoa-Kapoho Road — treat as 4-way stop
+- HELCO crews responding — estimated restoration unknown
+- Residents advised to conserve generator fuel
+
+---
+
+**If you are in an evacuation zone, leave NOW.** Do not wait. Report emergencies to **911** immediately.
+
+*Stay safe, Hawaii Island — we are monitoring and will update as conditions change.*`;
+
+// ── Submissions Rendering ──────────────────────────────────────────────────
+const typeLabels = {fire:'🔥 Fire/Smoke',flooding:'💧 Flooding',road:'🚧 Road Closure',power:'⚡ Power Outage',lava:'🌋 Lava',tsunami:'🌊 Tsunami',accident:'🚨 Accident',other:'📋 Other'};
+const evacLabels = {voluntary:'Voluntary evac underway',mandatory:'Mandatory evac in effect',sheltering:'Sheltering in place',road_blocked:'Evac routes blocked'};
+
+function updateCounts() {
+    const total = allSubmissions.length;
+    pendingCount.textContent = total;
+    document.getElementById('total-count').textContent = total;
+    if (total > 0) { pendingBadge.textContent = total > 99 ? '99+' : total; pendingBadge.classList.remove('hidden'); }
+    else pendingBadge.classList.add('hidden');
+}
+
+function renderSubmissions() {
+    const dist = document.getElementById('filter-district').value;
+    const sev  = document.getElementById('filter-severity').value;
+    const list = document.getElementById('submissions-list');
+
+    const filtered = allSubmissions.filter(s =>
+        (!dist || s.district === dist) && (!sev || s.severity === sev)
+    );
+
+    if (!filtered.length) {
+        list.innerHTML = `<div class="submission-empty"><div style="font-size:28px;opacity:0.35">📋</div><div>${allSubmissions.length===0?'No submissions yet':'No results match the current filters'}</div></div>`;
+        return;
+    }
+
+    list.innerHTML = '';
+    filtered.forEach(sub => {
+        const card = document.createElement('div');
+        card.className = 'sub-card';
+        card.dataset.id = sub.id;
+        card.innerHTML = `
+            <div class="sub-top">
+                <span class="sub-type-badge">${typeLabels[sub.incident_type]||sub.incident_type}</span>
+                <span class="sub-district">${escHtml(sub.district)}</span>
+                ${sub.location?`<span class="sub-location">— ${escHtml(sub.location)}</span>`:''}
+                <span class="sub-spacer"></span>
+                <span class="sub-sev ${sub.severity}">${sub.severity}</span>
+                <span class="sub-time">${timeAgo(sub.timestamp)}</span>
+            </div>
+            <div class="sub-desc">${escHtml(sub.description)}</div>
+            <div class="sub-meta">
+                ${sub.evacuation?`<span class="sub-evac">⚠ ${evacLabels[sub.evacuation]||sub.evacuation}</span>`:''}
+                ${sub.reporter_name?`<span class="sub-reporter">👤 ${escHtml(sub.reporter_name)}</span>`:''}
+                <span class="sub-ref">${sub.ref_code}</span>
+            </div>
+            <div class="sub-actions">
+                <button class="mod-btn" onclick="removeSubmission(${sub.id})">✕ Remove</button>
+            </div>`;
+        list.appendChild(card);
+    });
+}
+
+function removeSubmission(id) {
+    const card = document.querySelector(`.sub-card[data-id="${id}"]`);
+    if (card) card.classList.add('deleted');
+    setTimeout(() => {
+        allSubmissions = allSubmissions.filter(s => s.id !== id);
+        renderSubmissions();
+        updateCounts();
+    }, 350);
+}
+
+document.getElementById('filter-district').addEventListener('change', renderSubmissions);
+document.getElementById('filter-severity').addEventListener('change', renderSubmissions);
+document.getElementById('refresh-btn').addEventListener('click', () => { renderSubmissions(); addLog('Submissions refreshed', 'info'); });
+
+// Initial render
+renderSubmissions(); updateCounts();
+
+// ── Simulated Report Generation ────────────────────────────────────────────
+const STEPS = [
+    {msg:'Connecting to database…',          level:'processing', delay:600},
+    {msg:'Fetching 4 pending submissions…',  level:'processing', delay:900},
+    {msg:'Loaded event context summary…',    level:'info',       delay:700},
+    {msg:'Stage 1: Organizing by district…', level:'processing', delay:1100},
+    {msg:'Stage 1: Chunk 1 of 1 complete',   level:'success',    delay:1400},
+    {msg:'Stage 2: Generating final report…',level:'processing', delay:1800},
+    {msg:'Report generated successfully',    level:'success',    delay:800},
+];
+
+generateBtn.addEventListener('click', async () => {
+    logContent.innerHTML = '';
+    currentReport = null;
+    saveBtn.disabled = true;
+    generateBtn.disabled = true;
+    reportContent.innerHTML = '<div class="placeholder-text"><div class="placeholder-icon">⏳</div><div>Generating report…</div></div>';
+    reportTs.textContent = '';
+    setStatus('Connecting…','processing');
+    startElapsed();
+
+    // Switch to report tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('[data-tab="report"]').classList.add('active');
+    document.getElementById('tab-report').classList.add('active');
+
+    for (const step of STEPS) {
+        await new Promise(r => setTimeout(r, step.delay));
+        addLog(step.msg, step.level);
+        if (step.level === 'processing') setStatus(step.msg.replace(/…$/,''), 'processing');
+    }
+
+    // Render report
+    currentReport = DEMO_REPORT;
+    const body = document.createElement('div');
+    body.className = 'report-body';
+    body.innerHTML = md2html(currentReport);
+    reportContent.innerHTML = '';
+    reportContent.appendChild(body);
+    const nowStr = new Date().toLocaleString('en-US',{timeZone:'Pacific/Honolulu',dateStyle:'medium',timeStyle:'short'});
+    reportTs.textContent = nowStr + ' HST';
+    document.getElementById('last-report-time').textContent = nowStr;
+
+    // Clear submissions after report generated (they've been processed)
+    allSubmissions = [];
+    updateCounts();
+
+    saveBtn.disabled = false;
+    setStatus('Complete','complete');
+    stopElapsed();
+    generateBtn.disabled = false;
+});
+
+// ── Save (simulated) ───────────────────────────────────────────────────────
+saveBtn.addEventListener('click', () => {
+    if (!currentReport) return;
+    const fname = `emergency_report_${new Date().toISOString().replace(/[:.]/g,'').slice(0,15)}.txt`;
+    addLog(`Report saved: ${fname}`, 'success');
+    showModal('Report Saved', `Saved to server:\nwatchtower_reports/${fname}\n\n(Demo mode — file not actually written)`, 'success');
+});
+
+// ── Clear ──────────────────────────────────────────────────────────────────
+document.getElementById('clear-btn').addEventListener('click', () => {
+    stopElapsed();
+    currentReport = null; saveBtn.disabled = true;
+    elapsedTimeEl.textContent = '0s'; elapsedPill.style.display = 'none';
+    setStatus('Ready','ready');
+    logContent.innerHTML = '';
+    addLog('Interface cleared — ready for new analysis.','info');
+    reportContent.innerHTML = `<div class="placeholder-text"><div class="placeholder-icon">🏝</div><div>Awaiting analysis</div><div class="placeholder-sub">Click Generate Report to process pending submissions</div></div>`;
+    reportTs.textContent = '';
+});
+</script>
+</body>
+</html>
