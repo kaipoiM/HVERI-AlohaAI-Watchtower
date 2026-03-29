@@ -16,9 +16,9 @@
     --text-muted: #8a929c;
     --green: #16a34a;
     --orange: #c85a00;
-    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
-    --font-ui: 'Barlow', sans-serif;
-    --font-display: 'Barlow Condensed', sans-serif;
+    --font-mono: 'Poppins', sans-serif;
+    --font-ui: 'Poppins', sans-serif;
+    --font-display: 'Poppins', sans-serif;
 }
 
 /* Dark mode overrides */
@@ -60,21 +60,6 @@ body {
     padding: 24px 16px 48px;
     position: relative;
     overflow-x: hidden;
-}
-
-/* Subtle scanline texture */
-.scanline-overlay {
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.04) 2px,
-        rgba(0,0,0,0.04) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
 }
 
 /* ── Container ─────────────────────────────────────────────────────────────── */
