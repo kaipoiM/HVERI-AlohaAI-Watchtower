@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Watchtower – Report an Incident</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg:              #1f1f1f;
+            --bg-card:         #262626;
+            --bg-input:        #333333;
+            --bg-header:       #333333;
+            --border:          #444444;
+            --text:            #ffffff;
+            --text-muted:      #888888;
+            --text-hint:       #666666;
+            --text-entry:      #cccccc;
+            --accent:          #E61919;
+            --accent-dark:     #990d0d;
+            --btn-gray:        #444444;
+            --btn-gray-hover:  #555555;
+            --placeholder:     #666666;
+            --chip-selected-bg:#3a0a0a;
+        }
+
+        body.light {
+            --bg:              #f0f0f0;
+            --bg-card:         #ffffff;
+            --bg-input:        #f7f7f7;
+            --bg-header:       #e4e4e4;
+            --border:          #cccccc;
+            --text:            #1a1a1a;
+            --text-muted:      #666666;
+            --text-hint:       #999999;
+            --text-entry:      #333333;
+            --accent:          #E61919;
+            --accent-dark:     #990d0d;
+            --btn-gray:        #dddddd;
+            --btn-gray-hover:  #cccccc;
+            --placeholder:     #aaaaaa;
+            --chip-selected-bg:#fde8e8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 14px;
+            right: 16px;
+            z-index: 500;
+            background: var(--bg-header);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 40px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 15px 0 8px;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background-color: var(--accent-dark);
+            border-left: 4px solid var(--accent);
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #ffcccc;
+            line-height: 1.5;
+        }
+
+        body.light .alert-banner {
+            color: #ffffff;
+        }
+
+        .alert-banner strong {
+            color: #ffffff;
+        }
+
+        /* Form Card */
+        .form-card {
+            background-color: var(--bg-card);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .form-card-header {
+            background-color: var(--bg-header);
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .form-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Field Groups */
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-group label {
+            font-size: 14px;
+            color: var(--text-entry);
+            font-weight: 500;
+        }
+
+        .field-group .field-hint {
+            font-size: 12px;
+            color: var(--text-hint);
+            margin-top: -3px;
+        }
+
+        .field-group input,
+        .field-group select,
+        .field-group textarea {
+            padding: 10px 12px;
+            font-size: 14px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.15s, background-color 0.2s, color 0.2s;
+        }
+
+        .field-group input::placeholder,
+        .field-group textarea::placeholder {
+            color: var(--placeholder);
+        }
+
+        .field-group input:focus,
+        .field-group select:focus,
+        .field-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .field-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+            cursor: pointer;
+        }
+
+        .field-group select option {
+            background-color: var(--bg-input);
+            color: var(--text);
+        }
+
+        .field-group textarea {
+            resize: vertical;
+            min-height: 110px;
+            line-height: 1.5;
+        }
+
+        /* Two-column row */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Incident type chips */
+        .type-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip-label {
+            cursor: pointer;
+        }
+
+        .chip-label input[type="radio"] {
+            display: none;
+        }
+
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--text-entry);
+            transition: all 0.15s;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .chip-label input[type="radio"]:checked + .chip {
+            background-color: var(--chip-selected-bg);
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .chip:hover {
+            border-color: var(--text-muted);
+            color: var(--text);
+        }
+
+        /* Severity */
+        .severity-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .severity-label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .severity-label input[type="radio"] {
+            display: none;
+        }
+
+        .severity-btn {
+            display: block;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            cursor: pointer;
+            background-color: var(--bg-input);
+        }
+
+        .severity-label.low .severity-btn   { color: #33cc33; }
+        .severity-label.medium .severity-btn { color: #e68019; }
+        .severity-label.high .severity-btn  { color: #E61919; }
+
+        .severity-label input[type="radio"]:checked + .severity-btn {
+            border-color: currentColor;
+            background-color: rgba(128,128,128,0.1);
+        }
+
+        /* Submit area */
+        .submit-area {
+            padding: 12px 16px 16px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 13px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.1s;
+            letter-spacing: 0.2px;
+        }
+
+        .btn:hover:not(:disabled) { opacity: 0.9; }
+        .btn:active:not(:disabled) { transform: scale(0.98); }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #ffffff;
+        }
+
+        .btn-primary:disabled {
+            background-color: #4a1a1a;
+            color: #886666;
+            cursor: not-allowed;
+        }
+
+        .btn-gray {
+            background-color: var(--btn-gray);
+            color: var(--text);
+            flex: 0 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+            transition: background-color 0.15s;
+        }
+
+        .btn-gray:hover { background-color: var(--btn-gray-hover); }
+
+        /* Confirmation state */
+        .confirmation {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .confirmation.visible {
+            display: flex;
+        }
+
+        .confirmation-icon {
+            font-size: 48px;
+        }
+
+        .confirmation h2 {
+            color: #33cc33;
+            font-size: 18px;
+        }
+
+        .confirmation p {
+            color: var(--text-muted);
+            font-size: 14px;
+            max-width: 380px;
+            line-height: 1.6;
+        }
+
+        .confirmation .ref-code {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .btn-submit-another {
+            background-color: var(--btn-gray);
+            color: var(--text);
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: background-color 0.15s;
+        }
+
+        .btn-submit-another:hover { background-color: var(--btn-gray-hover); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-hint);
+            font-size: 12px;
+            padding: 8px 0 0;
+        }
+
+        .footer a { color: var(--text-muted); text-decoration: none; }
+        .footer a:hover { color: var(--text); }
+
+        /* Validation */
+        .field-group input.invalid,
+        .field-group select.invalid,
+        .field-group textarea.invalid {
+            border-color: var(--accent);
+            background-color: rgba(230,25,25,0.08);
+        }
+
+        .field-error {
+            font-size: 12px;
+            color: var(--accent);
+            display: none;
+        }
+
+        .field-error.visible {
+            display: block;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 320px;
+            max-width: 440px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: modalSlideIn 0.2s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-16px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-radius: 8px 8px 0 0;
+            background-color: var(--accent);
+        }
+
+        .modal-title { font-size: 15px; font-weight: 600; color: #fff; }
+
+        .modal-close {
+            background: none; border: none;
+            color: #fff; font-size: 22px;
+            cursor: pointer; opacity: 0.8; line-height: 1;
+        }
+
+        .modal-close:hover { opacity: 1; }
+        .modal-body { padding: 18px; font-size: 14px; line-height: 1.6; color: var(--text-entry); }
+
+        /* Responsive */
+        @media (max-width: 560px) {
+            .field-row { grid-template-columns: 1fr; }
+            .type-chips { gap: 6px; }
+            .submit-area { flex-direction: column; }
+            .btn-gray { flex: 1; }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
+        <span id="theme-icon">☀️</span>
+        <span id="theme-label">Light</span>
+    </button>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <h1>AlohaAI Emergency Watchtower</h1>
+            <p>Community Incident Reporting — Hawaii Island</p>
+        </header>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+            <strong>⚠ For life-threatening emergencies, call 911 immediately.</strong><br>
+            Use this form to report non-urgent incidents or observations that may help emergency coordinators.
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card" id="form-card">
+            <div class="form-card-header">Submit an Incident Report</div>
+
+            <div class="form-body" id="form-body">
+
+                <!-- Incident Type -->
+                <div class="field-group">
+                    <label>Incident Type <span style="color:#E61919">*</span></label>
+                    <div class="type-chips" id="type-chips">
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="fire">
+                            <span class="chip">🔥 Fire / Smoke</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="flooding">
+                            <span class="chip">💧 Flooding</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="road">
+                            <span class="chip">🚧 Road Closure</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="power">
+                            <span class="chip">⚡ Power Outage</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="lava">
+                            <span class="chip">🌋 Lava Activity</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="tsunami">
+                            <span class="chip">🌊 Tsunami</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="accident">
+                            <span class="chip">🚨 Accident / Hazard</span>
+                        </label>
+                        <label class="chip-label">
+                            <input type="radio" name="incident-type" value="other">
+                            <span class="chip">📋 Other</span>
+                        </label>
+                    </div>
+                    <span class="field-error" id="type-error">Please select an incident type.</span>
+                </div>
+
+                <!-- District + Location row -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="district">District <span style="color:#E61919">*</span></label>
+                        <select id="district">
+                            <option value="" disabled selected>Select district…</option>
+                            <optgroup label="Hawaii Island (Big Island)">
+                                <option value="North Kohala">North Kohala</option>
+                                <option value="South Kohala">South Kohala</option>
+                                <option value="North Kona">North Kona</option>
+                                <option value="South Kona">South Kona</option>
+                                <option value="Ka'u">Ka'u</option>
+                                <option value="Puna">Puna</option>
+                                <option value="South Hilo">South Hilo</option>
+                                <option value="North Hilo">North Hilo</option>
+                                <option value="Hamakua">Hamakua</option>
+                            </optgroup>
+                        </select>
+                        <span class="field-error" id="district-error">Please select a district.</span>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="location">Specific Location</label>
+                        <input type="text" id="location" placeholder="e.g. Kamehameha Ave, Mile 14…">
+                        <span class="field-hint">Street, landmark, or cross-street</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="field-group">
+                    <label for="description">What are you observing? <span style="color:#E61919">*</span></label>
+                    <textarea id="description" placeholder="Describe the incident in as much detail as possible — size, direction of spread, road conditions, number of vehicles/people affected, etc."></textarea>
+                    <span class="field-error" id="desc-error">Please describe what you're observing.</span>
+                </div>
+
+                <!-- Severity -->
+                <div class="field-group">
+                    <label>Perceived Severity</label>
+                    <div class="severity-row">
+                        <label class="severity-label low">
+                            <input type="radio" name="severity" value="low" checked>
+                            <span class="severity-btn">Low</span>
+                        </label>
+                        <label class="severity-label medium">
+                            <input type="radio" name="severity" value="medium">
+                            <span class="severity-btn">Moderate</span>
+                        </label>
+                        <label class="severity-label high">
+                            <input type="radio" name="severity" value="high">
+                            <span class="severity-btn">High</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Evacuation status -->
+                <div class="field-group">
+                    <label for="evacuation">Evacuation Activity</label>
+                    <select id="evacuation">
+                        <option value="">None observed / Not applicable</option>
+                        <option value="voluntary">Voluntary evacuations underway</option>
+                        <option value="mandatory">Mandatory evacuations in effect</option>
+                        <option value="sheltering">People sheltering in place</option>
+                        <option value="road_blocked">Evacuation routes blocked</option>
+                    </select>
+                </div>
+
+                <!-- Reporter name (optional) -->
+                <div class="field-group">
+                    <label for="reporter-name">Your Name <span style="color:#666666; font-weight:400">(optional)</span></label>
+                    <input type="text" id="reporter-name" placeholder="First name or initials only">
+                    <span class="field-hint">Used only for follow-up by coordinators if needed</span>
+                </div>
+
+            </div><!-- /form-body -->
+
+            <!-- Submit area -->
+            <div class="submit-area" id="submit-area">
+                <button class="btn btn-primary" id="submit-btn">Submit Report</button>
+                <button class="btn btn-gray" id="clear-btn">Clear</button>
+            </div>
+
+            <!-- Confirmation -->
+            <div class="confirmation" id="confirmation">
+                <div class="confirmation-icon">✅</div>
+                <h2>Report Submitted</h2>
+                <p>Your report has been received and will be reviewed by emergency coordinators. Thank you for helping keep Hawaii Island safe.</p>
+                <div class="ref-code" id="ref-code">REF: —</div>
+                <p style="font-size:12px; color: var(--text-hint); max-width:360px; line-height:1.6;">
+                    This reference code is for your records. Screenshot or note it down if you wish to follow up with emergency coordinators.
+                </p>
+                <button class="btn-submit-another" id="submit-another-btn">Submit Another Report</button>
+            </div>
+
+        </div><!-- /form-card -->
+
+        <!-- Footer -->
+        <div class="footer">
+            AlohaAI Watchtower &nbsp;·&nbsp; Hawaiian Volcano Education & Resilience Institute &nbsp;·&nbsp;
+            <a href="#">Privacy Policy</a>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title">Notice</span>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Theme Toggle ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon   = document.getElementById('theme-icon');
+        const themeLabel  = document.getElementById('theme-label');
+        const systemDark  = window.matchMedia('(prefers-color-scheme: dark)');
+
+        function setTheme(light, save = true) {
+            document.body.classList.toggle('light', light);
+            themeIcon.textContent  = light ? '🌙' : '☀️';
+            themeLabel.textContent = light ? 'Dark' : 'Light';
+            if (save) localStorage.setItem('alohaai-theme', light ? 'light' : 'dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            setTheme(!document.body.classList.contains('light'));
+        });
+
+        // On system preference change, only follow it if user hasn't manually overridden
+        systemDark.addEventListener('change', e => {
+            if (!localStorage.getItem('alohaai-theme')) {
+                setTheme(!e.matches, false);
+            }
+        });
+
+        // Startup: use saved preference, otherwise follow system
+        const saved = localStorage.getItem('alohaai-theme');
+        if (saved) {
+            setTheme(saved === 'light');
+        } else {
+            setTheme(!systemDark.matches, false);
+        }
+
+        // --- Modal ---
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle   = document.getElementById('modal-title');
+        const modalBody    = document.getElementById('modal-body');
+        const modalClose   = document.getElementById('modal-close');
+
+        function showModal(title, msg) {
+            modalTitle.textContent = title;
+            modalBody.textContent  = msg;
+            modalOverlay.classList.add('active');
+        }
+
+        function hideModal() { modalOverlay.classList.remove('active'); }
+        modalClose.addEventListener('click', hideModal);
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) hideModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') hideModal(); });
+
+        // --- Helpers ---
+        function getSelectedRadio(name) {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : null;
+        }
+
+        function setError(id, visible) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('visible', visible);
+        }
+
+        function markInvalid(id, invalid) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('invalid', invalid);
+        }
+
+        function generateRef() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let ref = 'HI-';
+            for (let i = 0; i < 6; i++) ref += chars[Math.floor(Math.random() * chars.length)];
+            return ref;
+        }
+
+        // --- Validation ---
+        function validate() {
+            let ok = true;
+
+            const incidentType = getSelectedRadio('incident-type');
+            setError('type-error', !incidentType);
+            if (!incidentType) ok = false;
+
+            const district = document.getElementById('district').value;
+            setError('district-error', !district);
+            markInvalid('district', !district);
+            if (!district) ok = false;
+
+            const desc = document.getElementById('description').value.trim();
+            setError('desc-error', !desc);
+            markInvalid('description', !desc);
+            if (!desc) ok = false;
+
+            return ok;
+        }
+
+        // --- Submit ---
+        document.getElementById('submit-btn').addEventListener('click', () => {
+            if (!validate()) {
+                showModal('Missing Information', 'Please fill in all required fields before submitting.');
+                return;
+            }
+
+            // Build report object (ready to POST to a backend)
+            const report = {
+                incidentType : getSelectedRadio('incident-type'),
+                district     : document.getElementById('district').value,
+                location     : document.getElementById('location').value.trim(),
+                description  : document.getElementById('description').value.trim(),
+                severity     : getSelectedRadio('severity'),
+                evacuation   : document.getElementById('evacuation').value,
+                reporterName : document.getElementById('reporter-name').value.trim(),
+                timestamp    : new Date().toISOString(),
+                ref          : generateRef()
+            };
+
+            console.log('Incident report payload:', report);
+
+            // Show confirmation
+            document.getElementById('ref-code').textContent = 'REF: ' + report.ref;
+            document.getElementById('form-body').style.display = 'none';
+            document.getElementById('submit-area').style.display = 'none';
+            document.getElementById('confirmation').classList.add('visible');
+        });
+
+        // --- Clear ---
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.querySelectorAll('input[name="incident-type"]').forEach(r => r.checked = false);
+            document.getElementById('district').selectedIndex = 0;
+            document.getElementById('location').value = '';
+            document.getElementById('description').value = '';
+            document.querySelectorAll('input[name="severity"]')[0].checked = true;
+            document.getElementById('evacuation').selectedIndex = 0;
+            document.getElementById('reporter-name').value = '';
+
+            ['type-error','district-error','desc-error'].forEach(id => setError(id, false));
+            ['district','description'].forEach(id => markInvalid(id, false));
+        });
+
+        // --- Submit Another ---
+        document.getElementById('submit-another-btn').addEventListener('click', () => {
+            document.getElementById('form-body').style.display = '';
+            document.getElementById('submit-area').style.display = '';
+            document.getElementById('confirmation').classList.remove('visible');
+            document.getElementById('clear-btn').click();
+        });
+
+        // Clear validation on input
+        document.getElementById('district').addEventListener('change', () => {
+            setError('district-error', false);
+            markInvalid('district', false);
+        });
+
+        document.getElementById('description').addEventListener('input', () => {
+            if (document.getElementById('description').value.trim()) {
+                setError('desc-error', false);
+                markInvalid('description', false);
+            }
+        });
+
+        document.querySelectorAll('input[name="incident-type"]').forEach(r => {
+            r.addEventListener('change', () => setError('type-error', false));
+        });
+    </script>
+</body>
+</html>
