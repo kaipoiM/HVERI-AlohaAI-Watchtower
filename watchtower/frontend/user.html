@@ -156,12 +156,12 @@
 
         /* Incident type chips */
         .chip-grid {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 7px;
         }
 
-        .chip-label { cursor: pointer; }
+        .chip-label { cursor: pointer; display: block; }
         .chip-label input[type="radio"] { display: none; }
 
         .chip {
@@ -169,6 +169,8 @@
             align-items: center;
             gap: 6px;
             padding: 6px 12px;
+            width: 100%;
+            box-sizing: border-box;
             background: var(--bg-elevated);
             border: 1px solid var(--border-bright);
             border-radius: 3px;
@@ -197,6 +199,8 @@
 
         .sev-btn {
             display: block;
+            width: 100%;
+            box-sizing: border-box;
             text-align: center;
             padding: 8px;
             border-radius: 3px;
@@ -482,7 +486,7 @@
         </div><!-- /form-card -->
 
         <div class="footer">
-            AlohaAI Watchtower &nbsp;·&nbsp; Hawaii Voluntary Organizations Active in Disaster
+            AlohaAI Watchtower &nbsp;·&nbsp; Hawaiian Volcano Education &amp; Resilience Institute (HVERI)
         </div>
 
     </div>
