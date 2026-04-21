@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Emergency Watchtower</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>AlohaAI Emergency Watchtower</h1>
+        </header>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <label for="fb-url">Facebook Post URL:</label>
+            <input type="text" id="fb-url" placeholder="https://facebook.com/groups/hawaiitracker/posts/...">
+        </section>
+
+        <!-- Control Buttons -->
+        <section class="controls">
+            <button id="generate-btn" class="btn btn-primary">Generate Report</button>
+            <button id="save-btn" class="btn btn-secondary" disabled>Save Report</button>
+            <button id="clear-btn" class="btn btn-gray">Clear</button>
+        </section>
+
+        <!-- Status Section -->
+        <section class="status-section">
+            <div class="status-row">
+                <span class="status-label">Status:</span>
+                <span id="status-value" class="status-value status-complete">Complete</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Comments Analyzed:</span>
+                <span id="comment-count" class="status-value">247</span>
+            </div>
+        </section>
+
+        <!-- Progress Log -->
+        <section class="log-section" id="log-section">
+            <div class="log-header">Progress Log</div>
+            <div class="log-content" id="log-content">
+                <div class="log-entry">[10:30:15] Monitoring started</div>
+                <div class="log-entry">[10:30:16] Extracting post ID...</div>
+                <div class="log-entry">[10:30:18] Scraping 247 comments...</div>
+                <div class="log-entry">[10:30:25] Analyzing with AI...</div>
+                <div class="log-entry success">[10:30:45] Report generated successfully</div>
+            </div>
+        </section>
+
+        <!-- Report Display Area -->
+        <section class="report-section">
+            <div class="report-header">Emergency Report</div>
+            <div class="report-content" id="report-content">
+                <div class="report-text" id="report-text">
+                    <p class="report-title"><strong>HAWAII COUNTY CIVIL DEFENSE - EMERGENCY UPDATE</strong></p>
+                    <p class="report-date"><em>December 17, 2025 - 11:30 PM HST</em></p>
+
+                    <p>We are currently responding to three active emergency situations across Hawaii Island affecting thousands of residents.</p>
+
+                    <p class="section-header"><strong>ACTIVE INCIDENTS:</strong></p>
+
+                    <div class="incident">
+                        <p class="incident-title">🔥 <strong>SOUTH KOHALA - Waikoloa Fire</strong></p>
+                        <ul>
+                            <li>Large brush fire (~400 acres) spreading rapidly due to high winds</li>
+                            <li><span class="urgent">MANDATORY EVACUATIONS</span> in progress for Waikoloa Village</li>
+                            <li>Fire threatening multiple residential areas and spreading toward Puako</li>
+                            <li>Red Cross shelter open for evacuees</li>
+                            <li>Air quality advisory in effect - avoid outdoor activities</li>
+                        </ul>
+                    </div>
+
+                    <div class="incident">
+                        <p class="incident-title">🚨 <strong>SOUTH HILO - Highway 19 Fatal Accident</strong></p>
+                        <ul>
+                            <li>Highway 19 <span class="urgent">COMPLETELY CLOSED</span> between Honomu and Laupahoehoe</li>
+                            <li>Two fatalities confirmed, multiple injuries</li>
+                            <li>Multi-vehicle collision involving tour bus</li>
+                            <li>Road closure indefinite - use Highway 130 or Waimea detour</li>
+                        </ul>
+                    </div>
+
+                    <div class="incident">
+                        <p class="incident-title">⚡ <strong>PUNA DISTRICT - Widespread Power Outage</strong></p>
+                        <ul>
+                            <li>Over 2,000 homes without power since 2:00 PM</li>
+                            <li>All traffic lights out - exercise extreme caution</li>
+                            <li>HELCO crews working on equipment failure repairs</li>
+                            <li>Estimated restoration: several more hours</li>
+                        </ul>
+                    </div>
+
+                    <p class="safety-reminder"><strong>IMMEDIATE SAFETY REMINDER:</strong> If you're in an evacuation zone, leave NOW. Do not delay for belongings.</p>
+
+                    <p>Monitor our page and local media for updates. Report emergencies to 911 immediately.</p>
+
+                    <p class="sign-off"><em>Stay safe, Hawaii Island.</em></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Popup Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal-header" id="modal-header">
+                <span class="modal-title" id="modal-title">Notification</span>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                Message goes here
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
