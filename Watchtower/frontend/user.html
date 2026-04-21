@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Watchtower — Report an Incident</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        /* ── report.html-specific styles ─────────────────────────────── */
+
+        .container { max-width: 680px; }
+
+        /* Alert banner */
+        .alert-banner {
+            background: var(--red-dim);
+            border: 1px solid var(--red-dark);
+            border-left: 3px solid var(--red);
+            border-radius: 3px;
+            padding: 10px 14px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+        .alert-banner strong { color: var(--red); }
+
+        /* Form card */
+        .form-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            padding: 7px 14px;
+        }
+
+        .card-header-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Field groups */
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-group label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .label-icon { color: var(--red); font-size: 10px; }
+        .label-opt  {
+            color: var(--text-muted);
+            font-size: 10px;
+            letter-spacing: 0;
+            text-transform: none;
+            font-family: var(--font-ui);
+        }
+
+        .field-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .field-error {
+            font-size: 11px;
+            color: var(--red);
+            font-family: var(--font-mono);
+            display: none;
+        }
+        .field-error.visible { display: block; }
+
+        .field-group input[type="text"],
+        .field-group select,
+        .field-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .field-group input[type="text"]::placeholder,
+        .field-group textarea::placeholder { color: var(--text-muted); }
+
+        .field-group input[type="text"]:focus,
+        .field-group select:focus,
+        .field-group textarea:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(214, 21, 21, 0.1);
+            background: var(--bg-panel);
+        }
+
+        .field-group input.invalid,
+        .field-group select.invalid,
+        .field-group textarea.invalid {
+            border-color: var(--red);
+            background: var(--red-dim);
+        }
+
+        .field-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a929c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+            cursor: pointer;
+        }
+
+        .field-group select option { background: var(--bg-elevated); color: var(--text); }
+
+        .field-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.55;
+        }
+
+        /* Two-column row */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Incident type chips */
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 7px;
+        }
+
+        .chip-label { cursor: pointer; display: block; }
+        .chip-label input[type="radio"] { display: none; }
+
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            font-family: var(--font-ui);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dim);
+            transition: all 0.15s;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .chip:hover { border-color: var(--text-muted); color: var(--text); }
+
+        .chip-label input[type="radio"]:checked + .chip {
+            background: var(--red-dim);
+            border-color: var(--red);
+            color: var(--text);
+        }
+
+        /* Severity selector */
+        .severity-row { display: flex; gap: 8px; }
+
+        .sev-label { cursor: pointer; flex: 1; }
+        .sev-label input[type="radio"] { display: none; }
+
+        .sev-btn {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid var(--border-bright);
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: var(--bg-elevated);
+            transition: all 0.15s;
+            cursor: pointer;
+        }
+
+        .sev-label.low    .sev-btn { color: var(--green); }
+        .sev-label.medium .sev-btn { color: var(--orange); }
+        .sev-label.high   .sev-btn { color: var(--red); }
+
+        .sev-label input[type="radio"]:checked + .sev-btn {
+            border-color: currentColor;
+            background: var(--bg-panel);
+            box-shadow: inset 0 0 0 1px currentColor;
+        }
+
+        /* Submit area */
+        .submit-area {
+            padding: 12px 16px 16px;
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-gray-sm {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: var(--bg-elevated);
+            color: var(--text-dim);
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            padding: 13px 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-gray-sm:hover { border-color: var(--text-muted); color: var(--text); }
+        .btn-gray-sm:active { transform: scale(0.985); }
+
+        /* Confirmation screen */
+        .confirmation {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 48px 24px;
+            text-align: center;
+        }
+        .confirmation.visible { display: flex; }
+
+        .conf-icon { font-size: 40px; line-height: 1; }
+
+        .conf-title {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--green);
+        }
+
+        .conf-body {
+            font-size: 14px;
+            color: var(--text-dim);
+            max-width: 380px;
+            line-height: 1.65;
+        }
+
+        .ref-pill {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            letter-spacing: 0.12em;
+            color: var(--red);
+            background: var(--red-dim);
+            border: 1px solid var(--red-dark);
+            padding: 7px 18px;
+            border-radius: 3px;
+        }
+
+        .ref-note {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            max-width: 360px;
+            line-height: 1.65;
+            text-align: center;
+        }
+
+        .btn-another {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: var(--bg-elevated);
+            color: var(--text-dim);
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            padding: 10px 22px;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-top: 4px;
+        }
+        .btn-another:hover { border-color: var(--text-muted); color: var(--text); }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 4px 0;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 560px) {
+            .field-row   { grid-template-columns: 1fr; }
+            .submit-area { flex-direction: column; }
+        }
+    </style>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Header (identical markup to index.html) -->
+        <header class="header">
+            <button id="theme-toggle" class="theme-toggle" title="Switch to dark mode">🌙 Dark Mode</button>
+            <div class="header-badge">COMMUNITY REPORTING</div>
+            <h1>
+                <span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
+                <span class="title-sub">Emergency Watchtower</span>
+            </h1>
+            <div class="header-meta">
+                <span id="live-clock" class="live-clock">--:--:-- HST</span>
+            </div>
+        </header>
+
+        <!-- Alert banner -->
+        <div class="alert-banner">
+            <strong>⚠ Life-threatening emergency? Call 911 immediately.</strong><br>
+            Use this form to report incidents to emergency coordinators. Your report goes directly to the Hawaii Island response team.
+        </div>
+
+        <!-- Form card -->
+        <div class="form-card" id="form-card">
+            <div class="card-header">
+                <span class="card-header-title">⬡ Submit Incident Report</span>
+            </div>
+
+            <div class="card-body" id="card-body">
+
+                <!-- Incident type -->
+                <div class="field-group">
+                    <label><span class="label-icon">⬡</span> Incident Type <span style="color:var(--red)">*</span></label>
+                    <div class="chip-grid">
+                        <label class="chip-label"><input type="radio" name="incident-type" value="fire">    <span class="chip">🔥 Fire / Smoke</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="flooding"><span class="chip">💧 Flooding</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="road">    <span class="chip">🚧 Road Closure</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="power">   <span class="chip">⚡ Power Outage</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="lava">    <span class="chip">🌋 Lava Activity</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="tsunami"> <span class="chip">🌊 Tsunami</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="accident"><span class="chip">🚨 Accident / Hazard</span></label>
+                        <label class="chip-label"><input type="radio" name="incident-type" value="other">   <span class="chip">📋 Other</span></label>
+                    </div>
+                    <span class="field-error" id="type-error">Please select an incident type.</span>
+                </div>
+
+                <!-- District + Location -->
+                <div class="field-row">
+                    <div class="field-group">
+                        <label><span class="label-icon">⬡</span> District <span style="color:var(--red)">*</span></label>
+                        <select id="district">
+                            <option value="" disabled selected>Select district…</option>
+                            <optgroup label="Hawaii Island">
+                                <option value="North Kohala">North Kohala</option>
+                                <option value="South Kohala">South Kohala</option>
+                                <option value="North Kona">North Kona</option>
+                                <option value="South Kona">South Kona</option>
+                                <option value="Ka'u">Ka'u</option>
+                                <option value="Puna">Puna</option>
+                                <option value="South Hilo">South Hilo</option>
+                                <option value="North Hilo">North Hilo</option>
+                                <option value="Hamakua">Hamakua</option>
+                            </optgroup>
+                        </select>
+                        <span class="field-error" id="district-error">Please select a district.</span>
+                    </div>
+
+                    <div class="field-group">
+                        <label><span class="label-icon">⬡</span> Specific Location</label>
+                        <input type="text" id="location" placeholder="Street, landmark, mile marker…">
+                        <span class="field-hint">Optional but helpful</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="field-group">
+                    <label><span class="label-icon">⬡</span> What are you observing? <span style="color:var(--red)">*</span></label>
+                    <textarea id="description" placeholder="Describe the incident — size, direction, road conditions, number of people affected, anything that helps coordinators understand the situation…"></textarea>
+                    <span class="field-error" id="desc-error">Please describe what you are observing.</span>
+                </div>
+
+                <!-- Severity -->
+                <div class="field-group">
+                    <label><span class="label-icon">⬡</span> Perceived Severity</label>
+                    <div class="severity-row">
+                        <label class="sev-label low">
+                            <input type="radio" name="severity" value="low" checked>
+                            <span class="sev-btn">Low</span>
+                        </label>
+                        <label class="sev-label medium">
+                            <input type="radio" name="severity" value="medium">
+                            <span class="sev-btn">Moderate</span>
+                        </label>
+                        <label class="sev-label high">
+                            <input type="radio" name="severity" value="high">
+                            <span class="sev-btn">High</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Evacuation -->
+                <div class="field-group">
+                    <label><span class="label-icon">⬡</span> Evacuation Activity</label>
+                    <select id="evacuation">
+                        <option value="">None observed / Not applicable</option>
+                        <option value="voluntary">Voluntary evacuations underway</option>
+                        <option value="mandatory">Mandatory evacuations in effect</option>
+                        <option value="sheltering">People sheltering in place</option>
+                        <option value="road_blocked">Evacuation routes blocked</option>
+                    </select>
+                </div>
+
+                <!-- Reporter name -->
+                <div class="field-group">
+                    <label>
+                        <span class="label-icon">⬡</span> Your Name
+                        <span class="label-opt">(optional — for coordinator follow-up only)</span>
+                    </label>
+                    <input type="text" id="reporter-name" placeholder="First name or initials">
+                </div>
+
+            </div><!-- /card-body -->
+	    
+	    <div style="display:flex; justify-content:center;">
+    		<div class="cf-turnstile" data-sitekey="0x4AAAAAAC_RA6-Yz9C1Ddu-" data-theme="auto"></div>
+	    </div>
+
+            <!-- Submit area -->
+            <div class="submit-area" id="submit-area">
+                <button class="btn btn-primary" id="submit-btn">
+                    <span class="btn-icon">▶</span> Submit Report
+                </button>
+                <button class="btn-gray-sm" id="clear-btn">
+                    <span>✕</span> Clear
+                </button>
+            </div>
+
+            <!-- Confirmation (replaces form on success) -->
+            <div class="confirmation" id="confirmation">
+                <div class="conf-icon">✅</div>
+                <div class="conf-title">Report Submitted</div>
+                <div class="conf-body">
+                    Your report has been received by the AlohaAI Watchtower team and will be included in the next emergency coordinator briefing.
+                </div>
+                <div class="ref-pill" id="ref-pill">REF: —</div>
+                <div class="ref-note">
+                    Note your reference code in case you need to follow up with coordinators.
+                    Reports are reviewed manually — this code does not yet link to a live tracking system.
+                </div>
+                <button class="btn-another" id="btn-another">Submit Another Report</button>
+            </div>
+
+        </div><!-- /form-card -->
+
+        <div class="footer">
+            AlohaAI Watchtower &nbsp;·&nbsp; Hawaiian Volcano Education &amp; Resilience Institute (HVERI)
+        </div>
+
+    </div>
+
+    <script>
+        // ── Theme (identical logic + same localStorage key as app.js) ──
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeToggleBtn.textContent = '☀️ Light Mode';
+                themeToggleBtn.title = 'Switch to light mode';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeToggleBtn.textContent = '🌙 Dark Mode';
+                themeToggleBtn.title = 'Switch to dark mode';
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(savedTheme || (systemDark ? 'dark' : 'light'));
+
+        themeToggleBtn.addEventListener('click', () => {
+            applyTheme(document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark');
+        });
+
+        // ── Clock ──────────────────────────────────────────────────────
+        function updateClock() {
+            const hst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Pacific/Honolulu' }));
+            const pad = n => String(n).padStart(2, '0');
+            document.getElementById('live-clock').textContent =
+                `${pad(hst.getHours())}:${pad(hst.getMinutes())}:${pad(hst.getSeconds())} HST`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ── Helpers ────────────────────────────────────────────────────
+        const getRadio  = name => document.querySelector(`input[name="${name}"]:checked`)?.value ?? null;
+        const setError  = (id, v) => document.getElementById(id)?.classList.toggle('visible', v);
+        const setInvalid= (id, v) => document.getElementById(id)?.classList.toggle('invalid', v);
+
+        function generateRef() {
+            const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            return 'HI-' + Array.from({length:6}, () => c[Math.floor(Math.random()*c.length)]).join('');
+        }
+
+        // ── Validation ─────────────────────────────────────────────────
+        function validate() {
+            let ok = true;
+            const type = getRadio('incident-type');
+            setError('type-error', !type);
+            if (!type) ok = false;
+
+            const district = document.getElementById('district').value;
+            setError('district-error', !district); setInvalid('district', !district);
+            if (!district) ok = false;
+
+            const desc = document.getElementById('description').value.trim();
+            setError('desc-error', !desc); setInvalid('description', !desc);
+            if (!desc) ok = false;
+
+            return ok;
+        }
+
+        // ── Submit ──────────────────────────────────────────────────────
+        document.getElementById('submit-btn').addEventListener('click', async () => {
+            if (!validate()) return;
+
+            const payload = {
+                incident_type : getRadio('incident-type'),
+                district      : document.getElementById('district').value,
+                location      : document.getElementById('location').value.trim(),
+                description   : document.getElementById('description').value.trim(),
+                severity      : getRadio('severity'),
+                evacuation    : document.getElementById('evacuation').value,
+                reporter_name : document.getElementById('reporter-name').value.trim(),
+                timestamp     : new Date().toISOString(),
+                ref_code      : generateRef(),
+		turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || "",
+            };
+
+            let ref = payload.ref_code;
+            try {
+                const res = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.ref_code) ref = data.ref_code;
+                } else if (res.status === 429) {
+			const data = await res.json();
+    			alert(data.detail || 'Too many submissions. Please wait before trying again.');
+			return;
+		}
+            } catch (err) {
+                console.warn('Submit error:', err.message);
+            }
+
+            document.getElementById('ref-pill').textContent = 'REF: ' + ref;
+            document.getElementById('card-body').style.display   = 'none';
+            document.getElementById('submit-area').style.display = 'none';
+            document.getElementById('confirmation').classList.add('visible');
+        });
+
+        // ── Clear ───────────────────────────────────────────────────────
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.querySelectorAll('input[name="incident-type"]').forEach(r => r.checked = false);
+            document.getElementById('district').selectedIndex = 0;
+            document.getElementById('location').value = '';
+            document.getElementById('description').value = '';
+            document.querySelector('input[name="severity"][value="low"]').checked = true;
+            document.getElementById('evacuation').selectedIndex = 0;
+            document.getElementById('reporter-name').value = '';
+            ['type-error','district-error','desc-error'].forEach(id => setError(id, false));
+            ['district','description'].forEach(id => setInvalid(id, false));
+        });
+
+        // ── Submit another ──────────────────────────────────────────────
+        document.getElementById('btn-another').addEventListener('click', () => {
+            document.getElementById('card-body').style.display   = '';
+            document.getElementById('submit-area').style.display = '';
+            document.getElementById('confirmation').classList.remove('visible');
+            document.getElementById('clear-btn').click();
+        });
+
+        // ── Clear validation on fix ─────────────────────────────────────
+        document.getElementById('district').addEventListener('change', () => {
+            setError('district-error', false); setInvalid('district', false);
+        });
+        document.getElementById('description').addEventListener('input', () => {
+            if (document.getElementById('description').value.trim()) {
+                setError('desc-error', false); setInvalid('description', false);
+            }
+        });
+        document.querySelectorAll('input[name="incident-type"]').forEach(r =>
+            r.addEventListener('change', () => setError('type-error', false))
+        );
+    </script>
+</body>
+</html>

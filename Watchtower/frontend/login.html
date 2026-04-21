@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlohaAI Watchtower — Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .container { max-width: 420px; margin-top: 80px; }
+
+        .login-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--red);
+            text-transform: uppercase;
+        }
+
+        .login-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-group label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 11px 14px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-bright);
+            border-radius: 3px;
+            color: var(--text);
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-group input:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(214, 21, 21, 0.1);
+        }
+
+        .error-msg {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--red);
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+
+        .login-btn {
+            width: 100%;
+            padding: 11px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-family: var(--font-ui);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .login-btn:hover { opacity: 0.88; }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
+                <span class="title-sub">Emergency Watchtower</span>
+            </h1>
+        </header>
+
+        <div class="login-card">
+            <div class="login-header">⬡ Administrator Login</div>
+            <div class="login-body">
+                <div class="field-group">
+                    <label>Email or Username</label>
+                    <input type="text" id="login" placeholder="email or username" autocomplete="username">
+                </div>
+                <div class="field-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="••••••••••" autocomplete="current-password">
+                </div>
+                <div class="error-msg" id="error-msg">Invalid credentials. Please try again.</div>
+                <button class="login-btn" id="login-btn">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const loginBtn = document.getElementById('login-btn');
+    const errorMsg = document.getElementById('error-msg');
+
+    const saved = localStorage.getItem('theme');
+    const dark  = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (saved === 'dark' || (!saved && dark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    async function doLogin() {
+        const login    = document.getElementById('login').value.trim();
+        const password = document.getElementById('password').value;
+        if (!login || !password) return;
+
+        loginBtn.disabled = true;
+        errorMsg.classList.remove('visible');
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login, password }),
+            });
+
+if (!res.ok) {
+    if (res.status === 429) {
+        const data = await res.json();
+        errorMsg.textContent = data.detail || 'Too many attempts. Please wait a minute.';
+    } else {
+        errorMsg.textContent = 'Invalid credentials. Please try again.';
+    }
+    errorMsg.classList.add('visible');
+    loginBtn.disabled = false;
+    return;
+}
+
+            const data = await res.json();
+            if (data.must_change_password) {
+                window.location.href = '/admin/change-password';
+            } else {
+                window.location.href = '/admin';
+            }
+        } catch(e) {
+            errorMsg.textContent = 'Connection error. Please try again.';
+            errorMsg.classList.add('visible');
+            loginBtn.disabled = false;
+        }
+    }
+
+    loginBtn.addEventListener('click', doLogin);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+</script>
+
+</body>
+</html>

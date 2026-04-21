@@ -1,0 +1,26 @@
+[Unit]
+Description=AlohaAI Emergency Watchtower
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/HVERI-AlohaAI-Watchtower/watchtower
+EnvironmentFile=/var/www/HVERI-AlohaAI-Watchtower/watchtower/.env
+ExecStart=/var/www/HVERI-AlohaAI-Watchtower/venv/bin/uvicorn backend.main:app \
+    --host 127.0.0.1 \
+    --port 8000 \
+    --workers 2 \
+    --no-access-log
+Restart=on-failure
+RestartSec=5
+
+# Harden the service process
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/www/HVERI-AlohaAI-Watchtower
+
+[Install]
+WantedBy=multi-user.target
