@@ -1,56 +1,67 @@
-# /etc/nginx/sites-available/watchtower
-# AlohaAI Emergency Watchtower — DigitalOcean droplet
-# HTTP only via public IP until a domain + SSL cert is set up.
-# When you get a domain: run certbot --nginx -d yourdomain.com and it will
-# rewrite this file to add HTTPS automatically.
-
 server {
-    listen 80;
-    listen [::]:80;
-    server_name watchtower.kaipoi.site;
+    server_name watchtower.kaipoi.site watchtower.hveri.org;
 
-    # ── Security headers ──────────────────────────────────────────────────
     add_header X-Frame-Options        "SAMEORIGIN"    always;
     add_header X-Content-Type-Options "nosniff"       always;
     add_header Referrer-Policy        "strict-origin"  always;
     add_header X-XSS-Protection       "1; mode=block"  always;
 
-    # ── Proxy to uvicorn ──────────────────────────────────────────────────
     location / {
         proxy_pass         http://127.0.0.1:8000;
         proxy_http_version 1.1;
-
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-
         proxy_connect_timeout 10s;
         proxy_send_timeout    60s;
         proxy_read_timeout    60s;
+        proxy_pass_header Set-Cookie;
     }
 
-    # ── SSE streaming (report generation endpoint) ────────────────────────
     location /api/generate {
         proxy_pass         http://127.0.0.1:8000;
         proxy_http_version 1.1;
-
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Connection        "";
-
         proxy_buffering            off;
         proxy_cache                off;
         proxy_read_timeout         300s;
         chunked_transfer_encoding  on;
     }
 
-    # ── Static asset caching ──────────────────────────────────────────────
     location /static/ {
         proxy_pass http://127.0.0.1:8000;
         expires 1h;
         add_header Cache-Control "public";
     }
+
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/watchtower.hveri.org/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/watchtower.hveri.org/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name watchtower.kaipoi.site watchtower.hveri.org;
+    if ($host = watchtower.kaipoi.site) {
+        return 301 https://$host$request_uri;
+    }
+    if ($host = watchtower.hveri.org) {
+        return 301 https://$host$request_uri;
+    }
+    return 404;
+
+
+
+
 }
