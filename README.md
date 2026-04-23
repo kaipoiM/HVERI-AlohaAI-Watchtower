@@ -1,6 +1,6 @@
 # AlohaAI Emergency Watchtower
 
-A real-time emergency reporting and AI-powered briefing system built for the **Hawaiian Volcano Education & Resilience Institute (HVERI)**. Deployed at (subject to change) [https://watchtower.hveri.org](https://watchtower.kaipoi.site).
+A real-time emergency reporting and AI-powered briefing system built for the **Hawaiian Volcano Education & Resilience Institute (HVERI)**. Deployed at [https://watchtower.hveri.org](https://watchtower.kaipoi.site).
 
 Citizens submit incident reports during natural disasters. Emergency coordinators receive AI-generated briefings organised by district, with priority items surfaced automatically.
 
