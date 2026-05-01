@@ -317,6 +317,7 @@ generateBtn.addEventListener('click', async () => {
     currentReport = null;
     saveBtn.disabled = true;
     generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="btn-icon">⏳</span> Generating…';
     reportContent.innerHTML = '<div class="placeholder-text"><div class="placeholder-icon">⏳</div><div>Generating report…</div></div>';
     reportTs.textContent = '';
 
@@ -371,6 +372,7 @@ generateBtn.addEventListener('click', async () => {
     } finally {
         stopElapsed();
         generateBtn.disabled = false;
+        generateBtn.innerHTML = '<span class="btn-icon">▶</span> Generate Report';
     }
 });
 
@@ -402,11 +404,13 @@ function handleEvent(event) {
             setStatus('Error', 'error');
             showModal('Error', event.message, 'error');
             generateBtn.disabled = false;
+            generateBtn.innerHTML = '<span class="btn-icon">▶</span> Generate Report';
             stopElapsed();
             break;
 
         case 'done':
             generateBtn.disabled = false;
+            generateBtn.innerHTML = '<span class="btn-icon">▶</span> Generate Report';
             stopElapsed();
             break;
     }
