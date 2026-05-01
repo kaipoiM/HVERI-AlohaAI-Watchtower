@@ -51,7 +51,7 @@ app.add_middleware(SlowAPIMiddleware)
 # CORS — update to your domain once you have one
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://watchtower.kaipoi.site"],
+    allow_origins=["https://watchtower.kaipoi.site", "https://watchtower.hveri.org"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
