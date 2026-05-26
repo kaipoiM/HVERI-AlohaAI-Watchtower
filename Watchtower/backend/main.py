@@ -157,6 +157,15 @@ async def serve_admin(request: Request):
     return FileResponse(str(FRONTEND_DIR / "admin.html"))
 
 
+@app.get("/privacy")
+async def serve_privacy():
+    return FileResponse(str(FRONTEND_DIR / "privacy.html"))
+
+
+@app.get("/terms")
+async def serve_terms():
+    return FileResponse(str(FRONTEND_DIR / "terms.html"))
+
 # ── Models ────────────────────────────────────────────────────────────────────
 
 class LoginRequest(BaseModel):
