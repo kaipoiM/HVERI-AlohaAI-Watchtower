@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlohaAI Emergency Watchtower — Admin</title>
+    <title>AlohaAI Emergency Watchtower - Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,13 +16,11 @@
         <!-- Header -->
         <header class="header">
             <button id="theme-toggle" class="theme-toggle" title="Switch to dark mode">🌙 Dark Mode</button>
-            <div class="header-badge">HVERI SYSTEM ACTIVE</div>
             <h1>
                 <span class="title-aloha">Aloha</span><span class="title-ai">AI</span>
                 <span class="title-sub">Emergency Watchtower</span>
             </h1>
             <div class="header-meta">
-                <span id="live-clock" class="live-clock">--:--:-- HST</span>
             </div>
         </header>
 
@@ -35,15 +33,15 @@
             </div>
             <div class="status-pill">
                 <span class="status-label">PENDING</span>
-                <span id="pending-count" class="status-value">—</span>
+                <span id="pending-count" class="status-value">:</span>
             </div>
             <div class="status-pill">
                 <span class="status-label">TOTAL</span>
-                <span id="total-count" class="status-value">—</span>
+                <span id="total-count" class="status-value">:</span>
             </div>
             <div class="status-pill">
                 <span class="status-label">LAST REPORT</span>
-                <span id="last-report-time" class="status-value">—</span>
+                <span id="last-report-time" class="status-value">:</span>
             </div>
             <div class="status-pill" id="elapsed-pill" style="display:none">
                 <span class="status-label">ELAPSED</span>
@@ -85,7 +83,7 @@
                     <span class="log-pulse" id="log-pulse"></span>
                 </div>
                 <div class="log-content" id="log-content">
-                    <div class="log-entry log-info">System initialized — click Generate Report to analyse pending submissions.</div>
+                    <div class="log-entry log-info">[ System initialized ] click Generate Report to analyse pending submissions.</div>
                 </div>
             </section>
 
@@ -145,6 +143,15 @@
             </section>
 
         </div>
+
+
+    <div style="text-align:center; font-family:var(--font-mono); font-size:11px; color:var(--text-muted); padding:12px 0; letter-spacing:0.05em;">
+        <a href="https://hveri.org" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none;">HVERI</a>
+        &nbsp;·&nbsp;
+        <a href="/privacy" style="color:var(--text-muted);text-decoration:none;">Privacy Policy</a>
+        &nbsp;·&nbsp;
+        <a href="https://hveri.org/contact" target="_blank" rel="noopener" style="color:var(--text-muted);text-decoration:none;">Contact</a>
+    </div>
 
     </div><!-- /container -->
 

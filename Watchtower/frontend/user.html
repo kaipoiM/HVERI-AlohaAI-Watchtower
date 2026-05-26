@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlohaAI Watchtower — Report an Incident</title>
+    <title>AlohaAI Watchtower - Report an Incident</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -327,6 +327,14 @@
             padding: 4px 0;
             letter-spacing: 0.05em;
         }
+	
+	.footer a {
+    	    color: var(--text-muted);
+    	    text-decoration: none;
+	}
+	.footer a:hover {
+    	    color: var(--red);
+	}
 
         @media (max-width: 560px) {
             .field-row   { grid-template-columns: 1fr; }
@@ -348,7 +356,7 @@
                 <span class="title-sub">Emergency Watchtower</span>
             </h1>
             <div class="header-meta">
-                <span id="live-clock" class="live-clock">--:--:-- HST</span>
+                
             </div>
         </header>
 
@@ -413,7 +421,7 @@
                 <!-- Description -->
                 <div class="field-group">
                     <label><span class="label-icon">⬡</span> What are you observing? <span style="color:var(--red)">*</span></label>
-                    <textarea id="description" placeholder="Describe the incident — size, direction, road conditions, number of people affected, anything that helps coordinators understand the situation…"></textarea>
+                    <textarea id="description" placeholder="Describe the incident: size, direction, road conditions, number of people affected, anything that helps coordinators understand the situation…"></textarea>
                     <span class="field-error" id="desc-error">Please describe what you are observing.</span>
                 </div>
 
@@ -452,7 +460,7 @@
                 <div class="field-group">
                     <label>
                         <span class="label-icon">⬡</span> Your Name
-                        <span class="label-opt">(optional — for coordinator follow-up only)</span>
+                        <span class="label-opt">(optional for coordinator follow-up only)</span>
                     </label>
                     <input type="text" id="reporter-name" placeholder="First name or initials">
                 </div>
@@ -480,10 +488,9 @@
                 <div class="conf-body">
                     Your report has been received by the AlohaAI Watchtower team and will be included in the next emergency coordinator briefing.
                 </div>
-                <div class="ref-pill" id="ref-pill">REF: —</div>
+                <div class="ref-pill" id="ref-pill">REF: </div>
                 <div class="ref-note">
                     Note your reference code in case you need to follow up with coordinators.
-                    Reports are reviewed manually — this code does not yet link to a live tracking system.
                 </div>
                 <button class="btn-another" id="btn-another">Submit Another Report</button>
             </div>
@@ -491,7 +498,11 @@
         </div><!-- /form-card -->
 
         <div class="footer">
-            AlohaAI Watchtower &nbsp;·&nbsp; Hawaiian Volcano Education &amp; Resilience Institute (HVERI)
+            <a href="https://hveri.org" target="_blank" rel="noopener">HVERI</a>
+   	    &nbsp;·&nbsp;
+	    <a href="/privacy">Privacy Policy</a>
+            &nbsp;·&nbsp;
+    	    <a href="https://hveri.org/contact" target="_blank" rel="noopener">Contact</a>
         </div>
 
     </div>
@@ -521,16 +532,7 @@
             applyTheme(document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark');
         });
 
-        // ── Clock ──────────────────────────────────────────────────────
-        function updateClock() {
-            const hst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Pacific/Honolulu' }));
-            const pad = n => String(n).padStart(2, '0');
-            document.getElementById('live-clock').textContent =
-                `${pad(hst.getHours())}:${pad(hst.getMinutes())}:${pad(hst.getSeconds())} HST`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
+        
         // ── Helpers ────────────────────────────────────────────────────
         const getRadio  = name => document.querySelector(`input[name="${name}"]:checked`)?.value ?? null;
         const setError  = (id, v) => document.getElementById(id)?.classList.toggle('visible', v);

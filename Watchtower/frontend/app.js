@@ -64,15 +64,6 @@ themeToggleBtn.addEventListener('click', () => {
     applyTheme(document.documentElement.hasAttribute('data-theme') ? 'light' : 'dark');
 });
 
-// ── Clock ──────────────────────────────────────────────────────────────────
-function updateClock() {
-    const hst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Pacific/Honolulu' }));
-    const pad = n => String(n).padStart(2, '0');
-    document.getElementById('live-clock').textContent =
-        `${pad(hst.getHours())}:${pad(hst.getMinutes())}:${pad(hst.getSeconds())} HST`;
-}
-setInterval(updateClock, 1000);
-updateClock();
 
 // ── Tab Switching ──────────────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
